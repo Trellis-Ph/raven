@@ -213,6 +213,85 @@ class RavenMessage(Document):
 
 		self.send_push_notification()
 
+		# --- BEGIN: In-app notification logic --- kreyes 250602
+		try:
+			# Fetch all users in the channel except the sender
+			members = frappe.get_all(
+				"Raven Channel Member",
+				filters={
+					"channel_id": self.channel_id,
+					"user_id": ["!=", self.owner]
+				},
+				fields=["user_id"]
+			)
+			recipients = [m.user_id for m in members]
+
+			# Send actual Web Push notifications via pywebpush
+			if recipients:
+				try:
+					from pywebpush import webpush, WebPushException
+					import json as _json
+
+					vapid_private_key = frappe.conf.get("vapid_private_key")
+					vapid_admin_email = frappe.conf.get("vapid_admin_email", "admin@example.com")
+
+					if vapid_private_key:
+						tokens = frappe.get_all("User Device Token",
+							filters={"user": ["in", recipients]},
+							fields=["name", "endpoint", "p256dh", "auth"]
+						)
+						if tokens:
+							owner_name = frappe.get_cached_value("User", self.owner, "full_name") or self.owner
+							payload = _json.dumps({
+								"title": f"Message from {owner_name}",
+								"body": self.content or "New message",
+								"data": {
+									"channel_id": self.channel_id,
+									"click_action": f"/raven/channel/{self.channel_id}",
+								}
+							})
+							for token in tokens:
+								try:
+									webpush(
+										subscription_info={
+											"endpoint": token.endpoint,
+											"keys": {"p256dh": token.p256dh, "auth": token.auth}
+										},
+										data=payload,
+										vapid_private_key=vapid_private_key,
+										vapid_claims={"sub": f"mailto:{vapid_admin_email}"}
+									)
+								except WebPushException as ex:
+									if ex.response and ex.response.status_code in [404, 410]:
+										frappe.delete_doc("User Device Token", token.name, ignore_permissions=True)
+								except Exception:
+									pass
+				except ImportError:
+					pass  # pywebpush not installed
+				except Exception:
+					frappe.log_error(frappe.get_traceback(), "Raven Web Push Error")
+
+			for recipient in recipients:
+				frappe.publish_realtime(
+					event="raven_new_message",
+					message={
+						"user": recipient,
+						"message": self.content
+					},
+					user=recipient
+				)
+				frappe.get_doc({
+					"doctype": "Notification Log",
+					"for_user": recipient,
+					"subject": f"New message in channel {self.channel_id}",
+					"email_content": self.content,
+					"document_type": "Raven Message",
+					"document_name": self.name
+				}).insert(ignore_permissions=True)
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "Raven In-App Notification Error")
+		# --- END: In-app notification logic ---
+
 	def handle_ai_message(self):
 
 		# If the message was sent by a bot, do not call the function

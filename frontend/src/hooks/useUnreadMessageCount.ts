@@ -138,9 +138,8 @@ export const useFetchUnreadMessageCount = () => {
                 updateUnreadCountToZero(channelID)
 
             } else {
-                //TODO: perf: Can try to just increment the count by one instead of fetching the count again
-                // https://github.com/The-Commit-Company/Raven/pull/745#issuecomment-2014313429
-                fetchUnreadCountForChannel(event.channel_id)
+                // Optimistically update the unread count by 1
+                incrementUnreadCount(event.channel_id)
             }
         } else {
             updateUnreadCountToZero(event.channel_id)
@@ -148,6 +147,36 @@ export const useFetchUnreadMessageCount = () => {
 
         updateLastMessageInChannelList(event.channel_id, event.last_message_timestamp)
     })
+
+    const incrementUnreadCount = (channelID: string) => {
+        updateCount(d => {
+            if (d) {
+                const isChannelAlreadyPresent = d.message.findIndex(c => c.name === channelID)
+
+                if (isChannelAlreadyPresent !== -1) {
+                    const newChannels = [...d.message]
+                    newChannels[isChannelAlreadyPresent] = {
+                        ...newChannels[isChannelAlreadyPresent],
+                        unread_count: newChannels[isChannelAlreadyPresent].unread_count + 1
+                    }
+                    return {
+                        message: newChannels
+                    }
+                } else {
+                    // If channel not found, we might need to fetch it or ignore. 
+                    // For simplicity and safety, if it's a new channel appearing via realtime, 
+                    // we might want to fetch it, but to be purely optimistic and efficient, 
+                    // we can check if we have channel info in the channel list.
+                    // But for now, let's fall back to fetch if not present, or just ignore (it will appear on refresh).
+                    // Better behavior: If not present, fetch it.
+                    fetchUnreadCountForChannel(channelID)
+                    return d
+                }
+            } else {
+                return d
+            }
+        }, { revalidate: false })
+    }
 
     const updateUnreadCountToZero = (channel_id?: string) => {
 

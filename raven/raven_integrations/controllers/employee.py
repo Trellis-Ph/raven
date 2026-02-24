@@ -81,7 +81,11 @@ def create_channel_member(channel_id, raven_user_id, employee_id):
 		}
 	)
 
-	channel_member.insert(ignore_permissions=True)
+	try:
+		channel_member.insert(ignore_permissions=True)
+	except frappe.DuplicateEntryError:
+		# If the user is already a member, just ignore the error and proceed
+		pass
 
 
 def get_channel_for_department(department):
