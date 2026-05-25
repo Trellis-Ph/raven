@@ -8,8 +8,14 @@ import { BsBoxes } from 'react-icons/bs'
 import { FiLifeBuoy } from 'react-icons/fi';
 import { LuCircleUserRound } from 'react-icons/lu'
 import { NavLink } from 'react-router-dom'
+import { hasRavenAdminRole, isSystemManager } from '@/utils/roles'
 
 export const SettingsSidebar = () => {
+    // The Integrations + AI groups configure cross-tenant, platform-level features
+    // (Raven workspace mappings, AI agents/functions, webhooks). Only Raven admins /
+    // System Managers can use the pages — gate the nav groups on the same check so
+    // client-company users don't even see them (the pages already 403 the data).
+    const isRavenAdmin = hasRavenAdminRole() || isSystemManager()
     return (
         <Box className="h-[calc(100vh-57px)] overflow-y-auto fixed w-64 border-r pt-2 border-gray-4 dark:border-gray-4">
             <Flex direction="column" gap='2' className='px-4'>
@@ -24,28 +30,32 @@ export const SettingsSidebar = () => {
                     <SettingsSidebarItem title="Users" to='users' />
                     <SettingsSidebarItem title="Emojis" to='emojis' />
                 </SettingsGroup>
-                <SettingsSeparator />
-                <SettingsGroup title='Integrations' icon={BsBoxes}>
-                    {/* <SettingsSidebarItem title="ERPNext" to='erpnext' /> */}
-                    <SettingsSidebarItem title="HR" to='hr' />
-                    <SettingsSidebarItem title='Document Notifications' to='document-notifications' />
-                    <SettingsSidebarItem title="Document Previews" to='document-previews' />
-                    <SettingsSidebarItem title="Message Actions" to='message-actions' />
-                    <SettingsSidebarItem title="Scheduled Messages" to='scheduled-messages' />
-                    <SettingsSidebarItem title="Webhooks" to='webhooks' />
-                    {/* <SettingsSidebarItem title="Frappe LMS" to='frappe-lms' /> */}
-                    {/* <SettingsSidebarItem title="Frappe CRM" to='frappe-crm' /> */}
-                </SettingsGroup>
-                <SettingsSeparator />
-                <SettingsGroup title="AI" icon={BiBot}>
-                    <SettingsSidebarItem title="Agents" to='bots' />
-                    <SettingsSidebarItem title="Functions" to='functions' />
-                    <SettingsSidebarItem title="File Sources" to='file-sources' />
-                    <SettingsSidebarItem title="Instructions" to="instructions" />
-                    <SettingsSidebarItem title="Document Processors" to="document-processors" />
-                    <SettingsSidebarItem title="Commands" to='commands' />
-                    <SettingsSidebarItem title="AI Settings" to='ai-settings' />
-                </SettingsGroup>
+                {isRavenAdmin && (
+                    <>
+                        <SettingsSeparator />
+                        <SettingsGroup title='Integrations' icon={BsBoxes}>
+                            {/* <SettingsSidebarItem title="ERPNext" to='erpnext' /> */}
+                            <SettingsSidebarItem title="HR" to='hr' />
+                            <SettingsSidebarItem title='Document Notifications' to='document-notifications' />
+                            <SettingsSidebarItem title="Document Previews" to='document-previews' />
+                            <SettingsSidebarItem title="Message Actions" to='message-actions' />
+                            <SettingsSidebarItem title="Scheduled Messages" to='scheduled-messages' />
+                            <SettingsSidebarItem title="Webhooks" to='webhooks' />
+                            {/* <SettingsSidebarItem title="Frappe LMS" to='frappe-lms' /> */}
+                            {/* <SettingsSidebarItem title="Frappe CRM" to='frappe-crm' /> */}
+                        </SettingsGroup>
+                        <SettingsSeparator />
+                        <SettingsGroup title="AI" icon={BiBot}>
+                            <SettingsSidebarItem title="Agents" to='bots' />
+                            <SettingsSidebarItem title="Functions" to='functions' />
+                            <SettingsSidebarItem title="File Sources" to='file-sources' />
+                            <SettingsSidebarItem title="Instructions" to="instructions" />
+                            <SettingsSidebarItem title="Document Processors" to="document-processors" />
+                            <SettingsSidebarItem title="Commands" to='commands' />
+                            <SettingsSidebarItem title="AI Settings" to='ai-settings' />
+                        </SettingsGroup>
+                    </>
+                )}
                 <SettingsSeparator />
                 <div className='flex flex-col gap-1 -mx-1'>
                     <SettingsSidebarItem title="Mobile App" to='mobile-app' standalone icon={BiMobileAlt} />
