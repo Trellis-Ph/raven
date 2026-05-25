@@ -342,12 +342,13 @@ def raven_poll_has_permission(doc, user=None, ptype=None):
 
 
 def raven_workspace_query(user):
+	if user == 'Administrator' or frappe.session.user == 'Administrator': return ''
 	if not user:
 		user = frappe.session.user
 
 	# Get all workspaces that the user is a member of
 	workspace_members = frappe.get_all(
-		"Raven Workspace Member", filters={"user": user}, fields=["workspace"]
+		"Raven Workspace Member", filters={"user": user}, fields=["workspace"], ignore_permissions=True
 	)
 
 	workspace_names = [frappe.db.escape(member.workspace) for member in workspace_members]
@@ -359,12 +360,13 @@ def raven_workspace_query(user):
 
 
 def raven_workspace_member_query(user):
+	if user == 'Administrator' or frappe.session.user == 'Administrator': return ''
 	if not user:
 		user = frappe.session.user
 
 	# Get all workspaces that the user is a member of
 	workspace_members = frappe.get_all(
-		"Raven Workspace Member", filters={"user": user}, fields=["workspace"]
+		"Raven Workspace Member", filters={"user": user}, fields=["workspace"], ignore_permissions=True
 	)
 
 	workspace_names = [frappe.db.escape(member.workspace) for member in workspace_members]
@@ -376,6 +378,7 @@ def raven_workspace_member_query(user):
 
 
 def raven_channel_query(user):
+	if user == 'Administrator' or frappe.session.user == 'Administrator': return ''
 	if not user:
 		user = frappe.session.user
 
@@ -391,6 +394,7 @@ def raven_channel_query(user):
 
 
 def raven_message_query(user):
+	if user == 'Administrator' or frappe.session.user == 'Administrator': return ''
 	if not user:
 		user = frappe.session.user
 
@@ -406,6 +410,7 @@ def raven_message_query(user):
 
 
 def raven_poll_query(user):
+	if user == 'Administrator' or frappe.session.user == 'Administrator': return ''
 	if not user:
 		user = frappe.session.user
 
@@ -413,6 +418,7 @@ def raven_poll_query(user):
 
 
 def raven_poll_vote_query(user):
+	if user == 'Administrator' or frappe.session.user == 'Administrator': return ''
 	if not user:
 		user = frappe.session.user
 

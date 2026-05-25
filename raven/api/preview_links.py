@@ -59,12 +59,12 @@ def get_preview_link(urls):
 						# TODO: We need to replace these special characters with the actual emojis
 
 						data = {
-							"title": preview.title,
-							"description": preview.description,
-							"image": preview.image,
-							"force_title": preview.force_title,
-							"absolute_image": preview.absolute_image,
-							"site_name": preview.site_name,
+							"title": str(preview.title) if preview.title else "",
+							"description": str(preview.description) if preview.description else "",
+							"image": str(preview.image) if preview.image else "",
+							"force_title": str(preview.force_title) if preview.force_title else "",
+							"absolute_image": str(preview.absolute_image) if preview.absolute_image else "",
+							"site_name": str(preview.site_name) if preview.site_name else "",
 						}
 					frappe.cache().set_value(url, data)
 			message_links.append(data)

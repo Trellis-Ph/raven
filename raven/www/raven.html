@@ -142,61 +142,6 @@
 
     frappe.boot = JSON.parse({{ boot }});
   </script>
-
-  <!-- Web Push Notifications for Raven PWA -->
-  <script type="module">
-    function urlBase64ToUint8Array(base64String) {
-      const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-      const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-      const rawData = window.atob(base64);
-      const outputArray = new Uint8Array(rawData.length);
-      for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
-      }
-      return outputArray;
-    }
-
-    const vapidKey = "BHWI1z5vi5m_f6lUssKaCXHJ7EaLPg_-JFgk30N0XcMAuqIKG1pxGj_-fsi5xoLnUkpCG5KuP365eWQqUARQ-E4";
-
-    function sendSubscriptionToBackend(subscription) {
-      if (!subscription) return;
-      fetch("/api/method/nxtech.api.register_push_subscription", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Frappe-CSRF-Token": window.csrf_token || "",
-        },
-        body: JSON.stringify({
-          subscription_info: JSON.stringify(subscription),
-          device_type: navigator.userAgent.includes("Mobile") ? "Mobile Web" : "Web"
-        }),
-      }).catch(() => { });
-    }
-
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then((registration) => {
-          Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
-              registration.pushManager.getSubscription().then((subscription) => {
-                if (subscription) {
-                  sendSubscriptionToBackend(subscription);
-                } else {
-                  const convertedVapidKey = urlBase64ToUint8Array(vapidKey);
-                  registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: convertedVapidKey
-                  }).then((newSubscription) => {
-                    sendSubscriptionToBackend(newSubscription);
-                  }).catch(() => { });
-                }
-              });
-            }
-          });
-        })
-        .catch(() => { });
-    }
-  </script>
 </body>
 
 </html>

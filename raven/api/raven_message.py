@@ -250,11 +250,13 @@ def get_messages_with_dates(channel_id):
 	return parse_messages(messages)
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_unread_count_for_channels():
 	"""
 	Fetch all channels where the user has unread messages > 0
 	"""
+	if frappe.session.user == "Guest":
+		return []
 
 	channel = frappe.qb.DocType("Raven Channel")
 	channel_member = frappe.qb.DocType("Raven Channel Member")
