@@ -70,6 +70,27 @@ def get_users():
 		],
 		order_by="full_name",
 	)
+
+	# `nickname` + `use_nickname_as_display_name` are custom fields on the
+	# `User` doctype (added by the nxtech app), NOT on `Raven User`. A Raven
+	# User is named by its `user` link, so `Raven User.name == User.name`.
+	# Batch-fetch the two columns and merge them in — keeps this code-only
+	# (no `Raven User` schema change, so no `bench migrate`).
+	user_ids = [u.name for u in users]
+	nickname_map = {}
+	if user_ids:
+		for row in frappe.db.get_all(
+			"User",
+			filters={"name": ("in", user_ids)},
+			fields=["name", "nickname", "use_nickname_as_display_name"],
+		):
+			nickname_map[row.name] = row
+
+	for u in users:
+		row = nickname_map.get(u.name)
+		u["nickname"] = (row.nickname if row else None) or None
+		u["use_nickname_as_display_name"] = int(row.use_nickname_as_display_name) if row else 0
+
 	return users
 
 
