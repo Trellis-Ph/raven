@@ -14,7 +14,9 @@ export const useGetUserRecords = () => {
                 user_image: user.user_image ?? '',
                 first_name: user.first_name,
                 enabled: user.enabled,
-                type: user.type
+                type: user.type,
+                nickname: user.nickname,
+                use_nickname_as_display_name: user.use_nickname_as_display_name
             }
         })
         return usersMap
