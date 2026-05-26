@@ -7,6 +7,7 @@ import { UserAvatar, getInitials } from '@/components/common/UserAvatar'
 import { useGetUser } from '@/hooks/useGetUser'
 import { useIsUserActive } from '@/hooks/useIsUserActive'
 import { UserFields } from '@/utils/users/UserListProvider'
+import { getUserDisplayName } from '@/utils/users/displayName'
 import { BsFillCircleFill } from 'react-icons/bs'
 import { MessageReactions } from './MessageReactions'
 import { ImageMessageBlock } from './Renderers/ImageMessage'
@@ -339,7 +340,7 @@ export const UserHoverCard = memo(({ user, userID, isActive }: UserProps) => {
 
     const { isBot, fullName, userImage, availabilityStatus, customStatus } = useMemo(() => {
         return {
-            fullName: user?.full_name ?? userID,
+            fullName: getUserDisplayName(user, userID),
             availabilityStatus: user?.availability_status,
             customStatus: user?.custom_status,
             userImage: user?.user_image ?? '',

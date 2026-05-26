@@ -6,6 +6,8 @@ import { UserAvatar } from '@/components/common/UserAvatar'
 import { BsEmojiSmile } from 'react-icons/bs'
 import useCurrentRavenUser from '@/hooks/useCurrentRavenUser'
 import { useIsUserActive } from '@/hooks/useIsUserActive'
+import { useGetUser } from '@/hooks/useGetUser'
+import { getUserDisplayName } from '@/utils/users/displayName'
 import { MdOutlineExitToApp } from 'react-icons/md'
 import { useNavigate } from 'react-router-dom'
 import { SetUserAvailabilityMenu } from '@/components/feature/userSettings/AvailabilityStatus/SetUserAvailabilityMenu'
@@ -23,6 +25,8 @@ export const SidebarFooter = () => {
     const [isUserStatusModalOpen, setUserStatusModalOpen] = useState(false)
 
     const { myProfile } = useCurrentRavenUser()
+    // myProfile is a Raven User doc (no nickname); the records carry it.
+    const userRecord = useGetUser(userData.name)
     const isActive = useIsUserActive(userData.name)
 
     const navigate = useNavigate()
@@ -50,7 +54,7 @@ export const SidebarFooter = () => {
                         <IconButton aria-label='Options' color='gray' variant='ghost' className='p-0 bg-transparent hover:bg-transparent'>
                             <UserAvatar
                                 src={myProfile?.user_image}
-                                alt={myProfile?.full_name}
+                                alt={getUserDisplayName(userRecord, myProfile?.full_name)}
                                 size='2'
                                 className='hover:shadow-sm transition-all duration-200'
                                 availabilityStatus={myProfile?.availability_status}

@@ -9,6 +9,8 @@ import { UserAvatar } from "@/components/common/UserAvatar"
 import { UserActionsMenu } from "./UserActions/UserActionsMenu"
 import { ChannelMembers } from "@/hooks/fetchers/useFetchChannelMembers"
 import { hasRavenAdminRole } from "@/utils/roles"
+import { useGetUserRecords } from "@/hooks/useGetUserRecords"
+import { getUserDisplayName } from "@/utils/users/displayName"
 
 interface MemberDetailsProps {
     channelData: ChannelListItem,
@@ -73,6 +75,10 @@ const MemberList = ({ channelData, channelMembers, activeUsers, updateMembers, i
 
     const { currentUser } = useContext(UserContext)
 
+    // `Member` (from get_channel_members) carries no nickname — resolve the
+    // display name from the central user records, which do.
+    const users = useGetUserRecords()
+
 
 
     const filteredMembers = useMemo(() => {
@@ -82,9 +88,10 @@ const MemberList = ({ channelData, channelMembers, activeUsers, updateMembers, i
 
         const i = input.toLowerCase()
         return channelMembersArray.filter((member) =>
-            member?.full_name?.toLowerCase().includes(i)
+            member?.full_name?.toLowerCase().includes(i) ||
+            getUserDisplayName(users[member.name]).toLowerCase().includes(i)
         )
-    }, [input, channelMembers])
+    }, [input, channelMembers, users])
 
     const isCurrentUserAdmin = useMemo(() => {
         // Check if thr current user is a member + (admin or Raven Admin)
@@ -104,7 +111,7 @@ const MemberList = ({ channelData, channelMembers, activeUsers, updateMembers, i
                         <Box key={member.name} className={'hover:bg-slate-3 rounded-md'}>
                             <Flex justify='between' className={'pr-3'}>
                                 <Flex className={'p-2'} gap='3'>
-                                    <UserAvatar src={member.user_image ?? ''} alt={member.full_name} size='2' isActive={activeUsers.includes(member.name)} availabilityStatus={member.availability_status} />
+                                    <UserAvatar src={member.user_image ?? ''} alt={getUserDisplayName(users[member.name], member.full_name)} size='2' isActive={activeUsers.includes(member.name)} availabilityStatus={member.availability_status} />
                                     <Flex gap='2' align={'center'}>
                                         <Text size='2' weight='medium'>{member.first_name}</Text>
                                         {activeUsers.includes(member.name) ? (
@@ -113,7 +120,7 @@ const MemberList = ({ channelData, channelMembers, activeUsers, updateMembers, i
                                             <BiCircle />
                                         )}
                                         <Flex gap='1'>
-                                            <Text weight='light' size='1'>{member.full_name}</Text>
+                                            <Text weight='light' size='1'>{getUserDisplayName(users[member.name], member.full_name)}</Text>
                                             {member.name === currentUser && <Text weight='light' size='1'>(You)</Text>}
                                             {channelMembers[member.name]?.is_admin == 1 && <Flex align="center"><BiSolidCrown color='#FFC53D' /></Flex>}
                                         </Flex>
