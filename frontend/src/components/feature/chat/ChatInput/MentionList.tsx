@@ -11,6 +11,7 @@ import {
 import { MemberSuggestions } from './Tiptap'
 import { HStack } from '@/components/layout/Stack'
 import { BiUserX } from 'react-icons/bi'
+import { getMentionLabel, getUserHandle } from '@/utils/users/displayName'
 
 export default forwardRef((props: ReactRendererOptions['props'], ref) => {
 
@@ -20,7 +21,7 @@ export default forwardRef((props: ReactRendererOptions['props'], ref) => {
         const item = props?.items[index]
 
         if (item) {
-            props.command({ id: item.name, label: item.full_name })
+            props.command({ id: item.name, label: getMentionLabel(item) })
         }
     }
 
@@ -99,8 +100,8 @@ const MentionItem = ({ item, index, selectItem, selectedIndex, itemsLength }: { 
         role='button'
         ref={ref}
         align='center'
-        title={item.full_name}
-        aria-label={`Mention ${item.full_name}`}
+        title={getMentionLabel(item)}
+        aria-label={`Mention ${getMentionLabel(item)}`}
         className={clsx('px-3 py-1.5 gap-2 rounded-md',
             index === itemsLength - 1 ? 'rounded-b-md' : 'rounded-b-none',
             index === 0 ? 'rounded-t-md' : 'rounded-t-none',
@@ -111,7 +112,7 @@ const MentionItem = ({ item, index, selectItem, selectedIndex, itemsLength }: { 
     >
         <UserAvatar
             src={item.user_image}
-            alt={item.full_name}
+            alt={getMentionLabel(item)}
             loading='lazy'
             variant='solid'
             radius='full'
@@ -119,7 +120,10 @@ const MentionItem = ({ item, index, selectItem, selectedIndex, itemsLength }: { 
             availabilityStatus={item.availability_status}
         />
         <HStack width='100%' justify='between' align='center' gap='2'>
-            <Text as='span' weight='medium' size='2'> {item.full_name}</Text>
+            <Text as='span' weight='medium' size='2'>
+                {item.full_name}
+                {getUserHandle(item) && <Text as='span' color='gray' size='1' ml='1'>{getUserHandle(item)}</Text>}
+            </Text>
             <Text as='span' color='gray'>{!item.is_member && <BiUserX title='This user is not a member of the channel' />}</Text>
         </HStack>
 
