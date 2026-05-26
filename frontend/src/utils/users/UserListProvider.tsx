@@ -11,7 +11,12 @@ export const UserListContext = createContext<{ users: UserFields[], enabledUsers
     enabledUsers: []
 })
 
-export type UserFields = Pick<RavenUser, 'name' | 'full_name' | 'user_image' | 'first_name' | 'enabled' | 'type' | 'availability_status' | 'custom_status'>
+export type UserFields = Pick<RavenUser, 'name' | 'full_name' | 'user_image' | 'first_name' | 'enabled' | 'type' | 'availability_status' | 'custom_status'> & {
+    /** Lowercase, no leading `@`. Sourced from `User.nickname` via get_users(). */
+    nickname?: string | null
+    /** 1 = render nickname as the display name. Sourced from `User`. */
+    use_nickname_as_display_name?: 0 | 1
+}
 
 export const UserListProvider = ({ children }: PropsWithChildren) => {
 
