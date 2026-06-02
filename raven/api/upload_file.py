@@ -11,6 +11,27 @@ from frappe.utils.image import optimize_image
 from PIL import Image, ImageOps
 
 
+def _transpose_and_reencode_jpeg(content):
+	"""Transpose a JPEG per its EXIF orientation and re-encode to JPEG bytes.
+
+	Flatten any alpha/palette mode to RGB first. JPEG cannot store an alpha
+	channel, so an image PIL reads as RGBA/LA/P (e.g. a screenshot or graphic
+	sent under a .jpg name) makes ``Image.save(format="JPEG")`` raise
+	OSError("cannot write mode RGBA as JPEG"), which aborts the whole upload
+	and silently drops the message (ISS-2026-00145). Mirrors the guard already
+	in frappe.utils.image.optimize_image.
+	"""
+	with Image.open(io.BytesIO(content)) as image:
+		# transpose the image per its EXIF orientation
+		transposed_image = ImageOps.exif_transpose(image)
+		if transposed_image.mode in ("RGBA", "LA", "P"):
+			transposed_image = transposed_image.convert("RGB")
+		# save the image to a buffer and return its bytes
+		buffer = io.BytesIO()
+		transposed_image.save(buffer, format="JPEG")
+		return buffer.getvalue()
+
+
 def upload_JPEG_wrt_EXIF(content, filename, optimize=False):
 	"""
 	When a user uploads a JPEG file, we need to transpose the image based on the EXIF data.
@@ -20,15 +41,7 @@ def upload_JPEG_wrt_EXIF(content, filename, optimize=False):
 
 	# if file format is JPEG, we need to transpose the image
 	if content_type.startswith("image/jpeg"):
-		with Image.open(io.BytesIO(content)) as image:
-			# transpose the image
-			transposed_image = ImageOps.exif_transpose(image)
-			#  convert the image to bytes
-			buffer = io.BytesIO()
-			# save the image to the buffer
-			transposed_image.save(buffer, format="JPEG")
-			# get the value of the buffer
-			buffer = buffer.getvalue()
+		buffer = _transpose_and_reencode_jpeg(content)
 	else:
 		buffer = base64.b64decode(content)
 
