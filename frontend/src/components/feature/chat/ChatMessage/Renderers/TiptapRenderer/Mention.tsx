@@ -52,15 +52,15 @@ export const UserMentionRenderer = ({ node }: NodeViewRendererProps) => {
                         sm: '3',
                         md: '2'
                     }} onClick={onClick} className='cursor-pointer'>
-                        @{getMentionLabel(user, node.attrs.label)}
+                        @{getMentionLabel(user, node.attrs.label, workspaceID)}
                     </Link>
                 </HoverCard.Trigger>
                 <HoverCard.Content size='1'>
                     <Flex gap='2' align='center'>
-                        <UserAvatar src={user?.user_image} alt={getUserDisplayName(user, node.attrs.label)} size='4' />
+                        <UserAvatar src={user?.user_image} alt={getUserDisplayName(user, node.attrs.label, workspaceID)} size='4' />
                         <Flex direction='column'>
                             <Flex gap='3' align='center'>
-                                <Text className='text-gray-12' weight='bold' size='3'>{getUserDisplayName(user, node.attrs.label)}</Text>
+                                <Text className='text-gray-12' weight='bold' size='3'>{getUserDisplayName(user, node.attrs.label, workspaceID)}</Text>
                                 {/* if availabilityStatus is set to 'Invisible', don't show the status */}
                                 {availabilityStatus && availabilityStatus !== 'Invisible' && <Flex className='text-gray-10 text-xs flex gap-1 items-center'>
                                     {getStatusText(availabilityStatus)}

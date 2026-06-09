@@ -338,15 +338,18 @@ export const MessageSenderAvatar = memo(({ user, userID, isActive = false }: Use
 
 export const UserHoverCard = memo(({ user, userID, isActive }: UserProps) => {
 
+    // Per-workspace alias ("<client> Admin") wins inside the client workspace.
+    const { workspaceID } = useParams()
+
     const { isBot, fullName, userImage, availabilityStatus, customStatus } = useMemo(() => {
         return {
-            fullName: getUserDisplayName(user, userID),
+            fullName: getUserDisplayName(user, userID, workspaceID),
             availabilityStatus: user?.availability_status,
             customStatus: user?.custom_status,
             userImage: user?.user_image ?? '',
             isBot: user?.type === 'Bot'
         }
-    }, [user, userID])
+    }, [user, userID, workspaceID])
     return <HoverCard.Root>
         <HoverCard.Trigger>
             <Text className='text-gray-12 flex items-center gap-1' weight='medium' size='2'>

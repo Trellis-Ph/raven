@@ -16,6 +16,12 @@ export type UserFields = Pick<RavenUser, 'name' | 'full_name' | 'user_image' | '
     nickname?: string | null
     /** 1 = render nickname as the display name. Sourced from `User`. */
     use_nickname_as_display_name?: 0 | 1
+    /**
+     * Per-WORKSPACE display alias, keyed by workspace id (e.g.
+     * `{ "<company>": "<company> Admin" }`). Sourced from the nxtech `get_list`
+     * override for EOR Client Admins. Render-only — grants no Raven role.
+     */
+    workspace_aliases?: Record<string, string>
 }
 
 export const UserListProvider = ({ children }: PropsWithChildren) => {

@@ -16,7 +16,10 @@ export const useGetUserRecords = () => {
                 enabled: user.enabled,
                 type: user.type,
                 nickname: user.nickname,
-                use_nickname_as_display_name: user.use_nickname_as_display_name
+                use_nickname_as_display_name: user.use_nickname_as_display_name,
+                // Carry the per-workspace alias through the trimmed record, or it's
+                // stripped before getUserDisplayName/getMentionLabel can use it.
+                workspace_aliases: user.workspace_aliases
             }
         })
         return usersMap
