@@ -17,6 +17,9 @@ def track_channel_visit(channel_id, user=None, commit=False, publish_event_for_u
 	If the user is not a member of the channel, create a new member record
 	"""
 
+	if frappe.flags.read_only:
+		return
+
 	if not user:
 		user = frappe.session.user
 
@@ -127,6 +130,7 @@ def get_channel_members(channel_id: str):
 			raven_user.type,
 		)
 		.where(raven_channel_member.channel_id == channel_id)
+		.where(raven_user.enabled == 1)
 	)
 
 	members = query.run(as_dict=True)
@@ -181,7 +185,17 @@ def get_raven_user(user_id: str) -> str:
 	Get the Raven User ID of a user
 	"""
 	# TODO: Run this via cache
-	return frappe.db.get_value("Raven User", {"user": user_id}, "name")
+	raven_user = frappe.qb.DocType("Raven User")
+	query = (
+		frappe.qb.from_(raven_user)
+		.select(raven_user.name)
+		.where((raven_user.user == user_id) | (raven_user.bot == user_id))
+		.limit(1)
+	)
+
+	result = query.run(pluck=True)
+
+	return result[0] if result else None
 
 
 def get_thread_reply_count(thread_id: str) -> int:
@@ -214,3 +228,31 @@ def clear_thread_reply_count_cache(thread_id: str):
 	Clear the thread reply count cache
 	"""
 	frappe.cache().hdel("raven:thread_reply_count", thread_id)
+
+
+def make_api_call(url: str, api_key: str, api_secret: str, method: str, params: dict = None):
+	"""
+	Make an API call to the given URL
+	"""
+	from base64 import b64encode
+
+	import requests
+
+	token = b64encode(f"{api_key}:{api_secret}".encode()).decode()
+	auth_header = {"Authorization": f"Basic {token}"}
+
+	if method == "GET":
+		response = requests.get(url, headers=auth_header, params=params)
+	elif method == "POST":
+		response = requests.post(url, headers=auth_header, json=params)
+
+	# return response.json only if the response is successful
+	if not response.ok:
+		frappe.log_error(
+			title="Raven Cloud API Error",
+			message=f"Failed to make API call to {url}: {response.status_code} {response.text}",
+		)
+		raise Exception(f"Failed to make API call to {url}: {response.status_code} {response.text}")
+
+	# Return the JSON response
+	return response.json()

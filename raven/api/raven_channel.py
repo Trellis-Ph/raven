@@ -3,11 +3,11 @@ from frappe import _
 from frappe.query_builder import Order
 
 from raven.api.raven_users import get_current_raven_user
-from raven.utils import get_channel_members, is_channel_member, track_channel_visit
+from raven.utils import get_channel_members, get_raven_user, is_channel_member, track_channel_visit
 
 
 @frappe.whitelist()
-def get_all_channels(hide_archived=True):
+def get_all_channels(hide_archived: bool | str = True):
 	"""
 	Fetches all channels where current user is a member - both channels and DMs
 	To be used on the web app.
@@ -39,7 +39,7 @@ def get_all_channels(hide_archived=True):
 	return {"channels": channel_list, "dm_channels": dm_list}
 
 
-def get_channel_list(hide_archived=False):
+def get_channel_list(hide_archived: bool = False):
 	"""
 	get List of all channels where current user is a member (all includes public, private, open, and DM channels)
 	"""
@@ -94,7 +94,7 @@ def get_channel_list(hide_archived=False):
 
 
 @frappe.whitelist()
-def get_channels(hide_archived=False):
+def get_channels(hide_archived: bool | str = False):
 	channels = get_channel_list(hide_archived)
 	for channel in channels:
 		peer_user_id = get_peer_user_id(
@@ -140,23 +140,37 @@ def get_peer_user_id(
 
 
 @frappe.whitelist(methods=["POST"])
-def create_direct_message_channel(user_id):
+def create_direct_message_channel(user_id: str):
 	"""
 	Creates a direct message channel between current user and the user with user_id
 	The user_id can be the peer or the user themself
 	1. Check if a channel already exists between the two users
+	- Use dm_user_1 and dm_user_2 to check if a channel exists to prevent race condition duplicates
 	2. If not, create a new channel
 	3. Check if the user_id is the current user and set is_self_message accordingly
 	"""
 	# TODO: this logic might break if the user_id changes
+
+	# Validate both users are Raven Users
+	if not get_raven_user(frappe.session.user):
+		frappe.throw(_("You need to be a Raven User to send DMs."))
+
+	if user_id != frappe.session.user:
+		if not get_raven_user(user_id):
+			frappe.throw(_("The user you are trying to message is not a Raven User."))
+
+	# Get the canonical order of the users
+	if frappe.session.user > user_id:
+		dm_user_1, dm_user_2 = frappe.session.user, user_id
+	else:
+		dm_user_1, dm_user_2 = user_id, frappe.session.user
+
 	channel_name = frappe.db.get_value(
 		"Raven Channel",
 		filters={
 			"is_direct_message": 1,
-			"channel_name": [
-				"in",
-				[frappe.session.user + " _ " + user_id, user_id + " _ " + frappe.session.user],
-			],
+			"dm_user_1": dm_user_1,
+			"dm_user_2": dm_user_2,
 		},
 		fieldname="name",
 	)
@@ -167,7 +181,7 @@ def create_direct_message_channel(user_id):
 		channel = frappe.get_doc(
 			{
 				"doctype": "Raven Channel",
-				"channel_name": frappe.session.user + " _ " + user_id,
+				"channel_name": dm_user_1 + " _ " + dm_user_2,
 				"is_direct_message": 1,
 				"is_self_message": frappe.session.user == user_id,
 			}
@@ -177,7 +191,7 @@ def create_direct_message_channel(user_id):
 
 
 @frappe.whitelist(methods=["POST"])
-def toggle_pinned_channel(channel_id):
+def toggle_pinned_channel(channel_id: str):
 	"""
 	Toggles the pinned status of the channel
 	"""
@@ -200,7 +214,7 @@ def toggle_pinned_channel(channel_id):
 
 
 @frappe.whitelist()
-def leave_channel(channel_id):
+def leave_channel(channel_id: str):
 	"""
 	Leave a channel
 	"""
@@ -216,7 +230,7 @@ def leave_channel(channel_id):
 
 
 @frappe.whitelist()
-def toggle_pin_message(channel_id, message_id):
+def toggle_pin_message(channel_id: str, message_id: str):
 	"""
 	Toggle pin/unpin a message in a channel.
 	"""

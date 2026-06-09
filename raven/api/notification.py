@@ -29,24 +29,26 @@ def register_site_on_raven_cloud() -> None:
 	"""
 	Register the site on Raven Cloud
 	"""
+	from raven.utils import make_api_call
+
 	frappe.only_for("System Manager")
 	raven_settings = frappe.get_single("Raven Settings")
 
 	if raven_settings.push_notification_service == "Raven":
 
-		client = FrappeClient(
-			url=raven_settings.push_notification_server_url,
+		url = f"{raven_settings.push_notification_server_url}/api/method/raven_cloud.api.notification.register_site"
+
+		response = make_api_call(
+			url=url,
 			api_key=raven_settings.push_notification_api_key,
 			api_secret=raven_settings.get_password("push_notification_api_secret"),
-		)
-
-		response = client.post_api(
-			"raven_cloud.api.notification.register_site",
+			method="POST",
 			params={"site_name": urlparse(frappe.utils.get_url()).hostname},
 		)
+		message = response.get("message")
 
-		raven_settings.config = response.get("config")
-		raven_settings.vapid_public_key = response.get("vapid_public_key")
+		raven_settings.config = message.get("config")
+		raven_settings.vapid_public_key = message.get("vapid_public_key")
 		raven_settings.save()
 	else:
 		frappe.throw(_("Push notification service is not set to Raven Cloud."))
@@ -104,6 +106,14 @@ def unsubscribe(fcm_token: str) -> None:
 	Remove the FCM token from the database
 	"""
 
-	frappe.db.delete("Raven Push Token", {"fcm_token": fcm_token, "user": frappe.session.user})
+	# Check if the FCM token exists
+	token_name = frappe.db.exists(
+		"Raven Push Token", {"fcm_token": fcm_token, "user": frappe.session.user}
+	)
+	if not token_name:
+		frappe.throw(_("FCM token not found"))
+
+	# Delete the FCM token from the database using delete_doc to ensure that on_trash method gets called to delete the token from RC/FCP.
+	frappe.delete_doc("Raven Push Token", token_name)
 
 	return "Unsubscribed"

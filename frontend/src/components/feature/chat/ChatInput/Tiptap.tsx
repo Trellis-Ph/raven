@@ -515,7 +515,6 @@ const Tiptap = forwardRef(({ isEdit, slotBefore, fileProps, onMessageSend, onUpA
 
             }
         }),
-        EmojiSuggestion,
         TimestampRenderer
     ]
 
@@ -524,7 +523,7 @@ const Tiptap = forwardRef(({ isEdit, slotBefore, fileProps, onMessageSend, onUpA
     const isDesktop = useIsDesktop()
 
     const editor = useEditor({
-        extensions,
+        extensions: isDesktop ? extensions.concat([EmojiSuggestion]) : extensions,
         content,
         editorProps: {
             handleTextInput() {

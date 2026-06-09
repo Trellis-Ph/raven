@@ -2,11 +2,12 @@ import json
 import re
 
 import frappe
+from frappe import _
 from linkpreview import Link, LinkGrabber, LinkPreview, link_preview
 
 
 @frappe.whitelist(methods=["GET"])
-def get_preview_link(urls):
+def get_preview_link(urls: list[str] | str):
 
 	data = {}
 	empty_data = {
@@ -59,12 +60,12 @@ def get_preview_link(urls):
 						# TODO: We need to replace these special characters with the actual emojis
 
 						data = {
-							"title": str(preview.title) if preview.title else "",
-							"description": str(preview.description) if preview.description else "",
-							"image": str(preview.image) if preview.image else "",
-							"force_title": str(preview.force_title) if preview.force_title else "",
-							"absolute_image": str(preview.absolute_image) if preview.absolute_image else "",
-							"site_name": str(preview.site_name) if preview.site_name else "",
+							"title": str(preview.title or ""),
+							"description": str(preview.description or ""),
+							"image": str(preview.image or ""),
+							"force_title": str(preview.force_title or ""),
+							"absolute_image": str(preview.absolute_image or ""),
+							"site_name": str(preview.site_name or ""),
 						}
 					frappe.cache().set_value(url, data)
 			message_links.append(data)
@@ -80,7 +81,7 @@ def hide_link_preview(message_id: str):
 	message = frappe.get_doc("Raven Message", message_id)
 
 	if not message.has_permission():
-		frappe.throw("You do not have permission to hide link previews on this message.")
+		frappe.throw(_("You do not have permission to hide link previews on this message."))
 
 	message.flags.ignore_permissions = True
 	message.hide_link_preview = 1
