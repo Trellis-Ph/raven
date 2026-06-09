@@ -212,8 +212,8 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-31 13:55:57.988161",
- "modified_by": "Administrator",
+ "modified": "2026-04-06 21:30:15.810781",
+ "modified_by": "jeomar@nxscale.com",
  "module": "Raven Messaging",
  "name": "Raven Message",
  "naming_rule": "Random",
@@ -253,5 +253,7 @@
  "search_fields": "text",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_seen": 1,
+ "track_views": 1
 }

@@ -9,6 +9,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import './tiptap.styles.css'
 import Mention from '@tiptap/extension-mention'
 import { UserFields, UserListContext } from '@/utils/users/UserListProvider'
+import { getMentionLabel } from '@/utils/users/displayName'
 import MentionList from './MentionList'
 import tippy from 'tippy.js'
 import { PluginKey } from '@tiptap/pm/state'
@@ -380,8 +381,11 @@ const Tiptap = forwardRef(({ isEdit, slotBefore, fileProps, onMessageSend, onUpA
             },
             suggestion: {
                 items: (query) => {
-                    return channelMembersRef.current.filter((user) => user.full_name.toLowerCase().startsWith(query.query.toLowerCase()))
-                        .slice(0, 10);
+                    const q = query.query.toLowerCase()
+                    return channelMembersRef.current.filter((user) =>
+                        getMentionLabel(user).toLowerCase().startsWith(q) ||
+                        (user.full_name?.toLowerCase().startsWith(q) ?? false)
+                    ).slice(0, 10);
                 },
                 // char: '@',
                 render: () => {

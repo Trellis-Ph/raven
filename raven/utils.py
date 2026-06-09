@@ -70,6 +70,7 @@ def get_workspace_members(workspace_id: str):
 		"Raven Workspace Member",
 		filters={"workspace": workspace_id},
 		fields=["name", "user", "is_admin"],
+		ignore_permissions=True,
 	)
 
 	data = {member.user: member for member in members}

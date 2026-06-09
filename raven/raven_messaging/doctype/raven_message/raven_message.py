@@ -33,7 +33,6 @@ class RavenMessage(Document):
 
 	if TYPE_CHECKING:
 		from frappe.types import DF
-
 		from raven.raven_messaging.doctype.raven_mention.raven_mention import RavenMention
 
 		blurhash: DF.SmallText | None
@@ -212,6 +211,42 @@ class RavenMessage(Document):
 
 		self.send_push_notification()
 
+		# Push delivery (FCM + VAPID web push) is handled by
+		# `nxtech.api.raven_push.send_raven_push`, which is enqueued from the
+		# `Raven Message` after_insert hook in nxtech/hooks.py. Don't duplicate
+		# the push path here — a prior duplicate caused the "Message from X"
+		# second notification (see docs/notes/ios-push.md invariant 10).
+		# We only emit the `raven_new_message` realtime event for in-app sound
+		# and unread tracking (consumed by useRaven.js).
+		if self.message_type == "System":
+			return
+
+		try:
+			members = frappe.get_all(
+				"Raven Channel Member",
+				filters={"channel_id": self.channel_id, "user_id": ["!=", self.owner]},
+				fields=["user_id"],
+			)
+			recipients = [m.user_id for m in members]
+			if not recipients:
+				return
+
+			owner_name = frappe.get_cached_value("User", self.owner, "full_name") or self.owner
+			for recipient in recipients:
+				frappe.publish_realtime(
+					event="raven_new_message",
+					message={
+						"user": recipient,
+						"message": self.content,
+						"sender_name": owner_name,
+						"sent_by": self.owner,
+						"channel_id": self.channel_id,
+					},
+					user=recipient,
+				)
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "Raven In-App Notification Error")
+
 	def handle_ai_message(self):
 
 		# If the message was sent by a bot, do not call the function
@@ -323,6 +358,8 @@ class RavenMessage(Document):
 							"channel_id": self.channel_id,
 							"play_sound": True,
 							"sent_by": self.owner,
+							"sender_name": frappe.get_cached_value("User", self.owner, "full_name") or self.owner,
+							"message_preview": truncate_notification_content(self.content or "New message"),
 							"is_dm_channel": True,
 							"last_message_timestamp": self.creation,
 							"last_message_details": last_message_details,
@@ -370,6 +407,8 @@ class RavenMessage(Document):
 					"channel_id": self.channel_id,
 					"play_sound": False,
 					"sent_by": self.owner,
+					"sender_name": frappe.get_cached_value("User", self.owner, "full_name") or self.owner,
+					"message_preview": truncate_notification_content(self.content or "New message"),
 					"is_dm_channel": False,
 					"is_thread": channel_doc.is_thread,
 					"last_message_timestamp": self.creation,
