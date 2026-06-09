@@ -32,26 +32,31 @@ branch + PR, never straight into `main`.
 - Before starting work, prune: `git fetch --prune`.
 
 ## Environment sync — every environment tracks main
-Prod and sandbox MUST always run exactly `origin/main`. Never run an environment
-off a feature branch or a detached commit.
+Prod and sandbox MUST always run raven at the `main` tip. Environments do NOT
+compile raven locally and never run off a feature branch — the fork is baked into
+the Trellis Docker image, and the VPS only PULLS that image.
 
-Deploy / sync procedure (Frappe bench, manual) on each server:
+Bundling is owned by the `Trellis-Ph/nXtech` repo (the "nxtech migration"), not
+this repo:
+- The **Build Trellis image** workflow
+  (`.github/workflows/build-trellis-image.yml`) builds
+  `ghcr.io/trellis-ph/erpnext-trellis:<tag>` with every app, including this fork,
+  and pushes it to GHCR.
+- raven is **branch-tracked** in `deploy/trellis-image/build-apps.sh`
+  (`BRANCH[raven]`): each image build bakes the branch tip, so this MUST be set to
+  `main`. Never point it at a feature branch — feature branches are deleted after
+  merge (a stale pin breaks the build).
+- Data migrations run automatically on deploy via nxtech's `before_migrate` hook
+  (`nxtech.migrate.execute`).
 
-    cd ~/frappe-bench/apps/raven
-    git fetch origin
-    git checkout main
-    git pull --ff-only origin main
-    cd ~/frappe-bench
-    bench build --app raven
-    bench --site <site> migrate
-    bench restart
+To roll a raven change out to environments:
+1. Merge it into `main` here (branch + PR, as above).
+2. In `Trellis-Ph/nXtech`, ensure `BRANCH[raven]=main` in `build-apps.sh`, then run
+   the **Build Trellis image** workflow to push a fresh image to GHCR.
+3. On prod/sandbox, pull the new image — the VPS never compiles
+   (see nXtech `docs/notes/docker-sandbox.md`).
 
-Verify an environment is in sync (the two hashes must be equal):
-
-    git -C ~/frappe-bench/apps/raven rev-parse HEAD
-    git -C ~/frappe-bench/apps/raven rev-parse origin/main
-
-If they differ, the environment is OUT OF SYNC — sync before doing anything else.
+An environment is in sync when its image bakes raven at the current `main` tip.
 
 ## Build artifacts
 - Built bundles (`raven/public/raven/assets/index-*.js`) are gitignored and
