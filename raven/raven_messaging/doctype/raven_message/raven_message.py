@@ -348,9 +348,14 @@ class RavenMessage(Document):
 
 			if not channel_doc.is_self_message:
 
+				# get_peer_user reads the enabled-only members map, so a disabled
+				# (or renamed) peer resolves to None. Sending to such a DM must
+				# skip the unread-count publish, not crash — an after_insert
+				# exception rolls back the message itself, so the send would
+				# fail entirely (2026-07-02 Error Log cluster).
 				peer_user_doc = get_peer_user(self.channel_id, 1)
 
-				if peer_user_doc.get("type") == "User":
+				if peer_user_doc and peer_user_doc.get("type") == "User":
 
 					frappe.publish_realtime(
 						"raven:unread_channel_count_updated",
