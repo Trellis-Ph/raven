@@ -95,10 +95,17 @@ def get_users():
 
 
 @frappe.whitelist()
-def is_user_on_leave(user: str):
+def is_user_on_leave(user: str | None = None):
 	"""
 	If the user is on leave, return True
 	"""
+	# The frontend hook can resolve no peer for a DM (disabled/renamed member
+	# excluded from the enabled-only members map) and then calls this with
+	# user=undefined — the param never reaches the request. Treat as not-on-leave
+	# instead of TypeError'ing in the whitelist wrapper.
+	if not user:
+		return False
+
 	# Check if FrappeHR is installed
 	if not "hrms" in frappe.get_installed_apps():
 		return False
