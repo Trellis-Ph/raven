@@ -60,6 +60,7 @@ class RavenUser(Document):
 
 	def on_update(self):
 		self.invalidate_user_list_cache()
+		self.invalidate_channel_member_caches_on_enabled_change()
 
 	def on_trash(self):
 		"""
@@ -85,6 +86,30 @@ class RavenUser(Document):
 		from raven.api.raven_users import get_users
 
 		get_users.clear_cache()
+
+	def invalidate_channel_member_caches_on_enabled_change(self):
+		"""Bust the per-channel members cache for every channel this user belongs to
+		when `enabled` flips.
+
+		`get_channel_members` (raven/utils.py) builds the members map with a
+		`WHERE raven_user.enabled = 1` filter and caches it with no TTL, invalidated
+		ONLY on membership changes to that channel — never when a member's Raven User
+		is enabled/disabled. So a disabled-then-re-enabled user (e.g. from Trellis
+		role churn) stays wrongly excluded/included in every channel's cached map
+		until the next membership change, which surfaced as "you do not have
+		permission to access this channel" on their DMs.
+		"""
+		before = self.get_doc_before_save()
+		if before is not None and before.enabled == self.enabled:
+			return
+
+		from raven.utils import delete_channel_members_cache
+
+		channel_ids = frappe.get_all(
+			"Raven Channel Member", filters={"user_id": self.name}, pluck="channel_id"
+		)
+		for channel_id in set(channel_ids):
+			delete_channel_members_cache(channel_id)
 
 	def update_photo_from_user(self):
 		"""
