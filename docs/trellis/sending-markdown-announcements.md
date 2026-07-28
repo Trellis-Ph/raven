@@ -6,10 +6,14 @@ Two ways to post a well-formatted `.md` announcement to a Raven channel.
 
 Copy the markdown source and paste it into the composer. Pastes that look
 like markdown are converted to rich formatting automatically (headings,
-bold, lists, code, tables). Review the result in the composer, then send.
+bold, lists, code). Review the result in the composer, then send.
+
+Markdown tables are not converted — the composer has no table support, so a
+pasted table stays as literal `|`-delimited text rather than being
+mangled into an unreadable paragraph.
 
 If you did not want the conversion, hold **Shift while pasting**. That keeps
-block-level structure — headings, lists, quotes, code blocks, tables — as
+block-level structure — headings, lists, quotes, code blocks — as
 plain text. Inline styling is a separate, always-on Tiptap behaviour and
 still applies even with Shift held: `**bold**`, `*italic*`, `~~strike~~`,
 `` `code` ``, `==highlight==`, and bare URLs are auto-formatted regardless.
