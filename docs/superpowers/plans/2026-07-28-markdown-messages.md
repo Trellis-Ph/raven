@@ -30,7 +30,7 @@
 - Consumes: nothing (pure function, zero imports).
 - Produces: `looksLikeMarkdown(text: string): boolean` — named export. Task 3 imports it from `./markdownDetection`.
 
-Rule (from spec): text is markdown if it has ≥1 **block** signal (heading line, fenced code, 2+ consecutive list lines, blockquote line, table separator row) OR ≥2 distinct **inline** signals (`**bold**`/`__bold__`, `[text](url)` link, `` `code` `` span).
+Rule (from spec): text is markdown if it has ≥1 **block** signal (heading line, fenced code, 2+ consecutive list lines, blockquote line) OR ≥2 distinct **inline** signals (`**bold**`/`__bold__`, `[text](url)` link, `` `code` `` span). (A later post-merge review round removed "table separator row" as a detection signal and instead handles tables at the conversion step in `MarkdownPaste.ts`: if the generated HTML contains a `<table>`, the whole paste is declined and falls through to literal text, since the composer schema cannot represent tables.)
 
 - [ ] **Step 1: Write the failing test script**
 
@@ -46,7 +46,7 @@ const cases: Array<[string, boolean, string]> = [
     ['> quoted wisdom', true, 'blockquote line'],
     ['- first thing\n- second thing', true, 'two bullet lines'],
     ['1. first\n2. second', true, 'two ordered lines'],
-    ['| a | b |\n| --- | --- |\n| 1 | 2 |', true, 'table separator row'],
+    ['| a | b |\n| --- | --- |\n| 1 | 2 |', false, 'table separator row (a later review round removed table detection as a signal — see note above)'],
     ['see **this** and [docs](https://x.com)', true, 'two inline signals'],
     ['run `ls` then check **output**', true, 'code span + bold'],
     ['Hey team, meeting at 3pm', false, 'plain prose'],
@@ -90,7 +90,12 @@ const BLOCK_PATTERNS: RegExp[] = [
     /^\s{0,3}>\s+\S/m, // blockquote line
     /^\s{0,3}[-*+]\s+\S.*\n\s{0,3}[-*+]\s+\S/m, // 2+ consecutive bullet lines
     /^\s{0,3}\d+\.\s+\S.*\n\s{0,3}\d+\.\s+\S/m, // 2+ consecutive ordered lines
-    /^\s*\|?(\s*:?-{3,}:?\s*\|)+\s*:?-{0,}:?\s*$/m, // table separator row
+    // NOTE: a later post-merge review round removed a table-separator-row
+    // pattern that originally lived here. Detecting a table as markdown wasn't the problem —
+    // marked.parse converting it to a <table> the composer schema can't
+    // represent was. That's now handled at conversion time in MarkdownPaste.ts
+    // (decline the whole paste if the generated HTML contains a <table>), not
+    // via a detection signal.
 ]
 
 // Inline signals are weaker — require at least two distinct kinds.
@@ -525,10 +530,19 @@ Two ways to post a well-formatted `.md` announcement to a Raven channel.
 
 Copy the markdown source and paste it into the composer. Pastes that look
 like markdown are converted to rich formatting automatically (headings,
-bold, lists, code, tables). Review the result in the composer, then send.
+bold, lists, code). Review the result in the composer, then send.
+
+The composer has no table support, so if a pasted document contains a
+markdown table, the **entire paste** is left as literal, unconverted text —
+not just the table. This is surprising: a `.md` file with headings, lists,
+and a table will paste with none of it converted, headings and lists
+included, because the whole paste is declined together (there is no way to
+convert everything except the table). To get formatting on a document like
+that, remove the table before pasting, or send it via Option B below, whose
+server-side conversion does support tables.
 
 If you did not want the conversion, hold **Shift while pasting**. That keeps
-block-level structure — headings, lists, quotes, code blocks, tables — as
+block-level structure — headings, lists, quotes, code blocks — as
 plain text. Inline styling is a separate, always-on Tiptap behaviour and
 still applies even with Shift held: `**bold**`, `*italic*`, `~~strike~~`,
 `` `code` ``, `==highlight==`, and bare URLs are auto-formatted regardless.

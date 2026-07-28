@@ -15,7 +15,10 @@ Two gaps prevent well-formatted markdown messages:
    (`frontend/src/components/feature/chat/ChatMessage/Renderers/TiptapRenderer/TiptapRenderer.tsx`,
    `heading: false`). `<h1>`–`<h6>` in stored message HTML collapse to plain
    paragraphs. Bold, italic, lists, tables, inline code, code blocks, links, and
-   images already render correctly.
+   images already render correctly. (Note: this is about the read-only message
+   *renderer*, which does have Table extensions. The chat *composer* does not,
+   and a later round found that meant pasted markdown tables were being
+   mangled — see the "Composer — table handling" note under Design below.)
 2. **No markdown parsing on paste.** Pasting `.md` content into the composer keeps
    the literal `##`/`**` characters. The code-block button is for literal code and
    is not a markdown route.
@@ -60,9 +63,23 @@ if it contains at least one block-level signal, or two or more inline signals:
 
 - Block signals: a line starting `#{1,6} `; a fenced code block (```` ``` ````);
   two or more consecutive lines starting with `- `/`* `/`+ ` or `1. `-style
-  ordered markers; a blockquote line (`> `); a table separator row (`|---|`).
+  ordered markers; a blockquote line (`> `).
 - Inline signals: `**bold**`/`__bold__` pairs, `[text](url)` links, `` `code` ``
   spans.
+
+**Composer — table handling.** A table is not a detection signal (a later
+round removed a "table separator row" pattern that used to be here). Tables
+are instead handled at conversion time: after `marked.parse` produces HTML,
+if that HTML contains a `<table>`, the whole paste is declined and falls
+through to the default handler, landing as literal, unconverted text — headings
+and lists included, not just the table. That's necessary because the composer
+schema has no Table/TableRow/TableCell/TableHeader extensions (unlike the
+read-only message renderer, which does); without this check, ProseMirror would
+flatten a pasted table into one run-on paragraph with no cell separators,
+destroying the content. Declining the whole paste is lossy-free (the user still
+has the original text, just unconverted); a targeted "skip only the table" would
+require the missing Table extensions, which is out of scope here (real editing/
+keyboard-interaction risk under a production deadline).
 
 **Conversion:** `marked.parse(text, { gfm: true, breaks: true })` → HTML →
 `editor.commands.insertContent(html)` in a single transaction, so one undo

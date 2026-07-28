@@ -8,9 +8,14 @@ Copy the markdown source and paste it into the composer. Pastes that look
 like markdown are converted to rich formatting automatically (headings,
 bold, lists, code). Review the result in the composer, then send.
 
-Markdown tables are not converted — the composer has no table support, so a
-pasted table stays as literal `|`-delimited text rather than being
-mangled into an unreadable paragraph.
+The composer has no table support, so if a pasted document contains a
+markdown table, the **entire paste** is left as literal, unconverted text —
+not just the table. This is surprising: a `.md` file with headings, lists,
+and a table will paste with none of it converted, headings and lists
+included, because the whole paste is declined together (there is no way to
+convert everything except the table). To get formatting on a document like
+that, remove the table before pasting, or send it via Option B below, whose
+server-side conversion does support tables.
 
 If you did not want the conversion, hold **Shift while pasting**. That keeps
 block-level structure — headings, lists, quotes, code blocks — as

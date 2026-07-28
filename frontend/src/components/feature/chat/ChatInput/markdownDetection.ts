@@ -18,9 +18,25 @@ const BLOCK_PATTERNS: RegExp[] = [
 ]
 
 // Inline signals are weaker — require at least two distinct kinds.
+//
+// The link pattern's label/URL classes are bounded ({1,200}/{1,500}) — generous
+// for any realistic markdown link, but critically finite. Unlike the bold/code
+// patterns below, "]" is the ONLY character excluded from the label class ("["
+// is not), so an unbounded `+` there lets a long run of "[" characters all be
+// swallowed into one greedy label-match attempt from the first "[". When that
+// attempt then fails (e.g. no "(" anywhere in the input), the engine retries
+// from the second "[", third "[", etc., each re-scanning nearly the same huge
+// run again — O(n^2) on adversarial input (measured: a 200,000-char paste of
+// "[" characters took over 60 seconds before this bound). Bold (`[^*\n]`) and
+// code (`` [^`\n] ``) don't have this problem: their delimiter is excluded from
+// its own content class, so a run of the delimiter character can never be
+// absorbed into one match attempt the way "[" can — each one is safely linear
+// already (measured well under 1ms even on pathological input), so they are
+// left unbounded to avoid truncating a legitimately long bold span or code
+// span on realistic input.
 const INLINE_PATTERNS: RegExp[] = [
     /\*\*[^*\n]+\*\*|__[^_\n]+__/, // bold
-    /\[[^\]\n]+\]\([^)\n]+\)/, // link
+    /\[[^\]\n]{1,200}\]\([^)\n]{1,500}\)/, // link
     /`[^`\n]+`/, // code span
 ]
 

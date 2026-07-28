@@ -14,11 +14,14 @@ type ViewWithInput = EditorView & { input?: { shiftKey?: boolean; lastKeyCode?: 
 
 // Markdown pastes larger than this are declined outright (paste falls through
 // to the default literal-text insert) rather than run through detection and
-// marked.parse. This bounds worst-case main-thread time: parsing and then
-// editor.commands.insertContent-ing the resulting HTML (which can run ~2x the
-// input size) is the dominant cost on large pastes. 200 KB is far larger than
-// any real pasted document (the target announcement file is ~2 KB) while still
-// comfortably covering legitimate use.
+// marked.parse. This bounds worst-case main-thread time: looksLikeMarkdown's
+// patterns are kept linear-time in the input length (see markdownDetection.ts —
+// notably the bounded {1,200}/{1,500} quantifiers in the link pattern, which
+// without a cap re-scan catastrophically on pathological input), so parsing and
+// then editor.commands.insertContent-ing the resulting HTML (which can run ~2x
+// the input size) is the dominant cost on large pastes. 200 KB is far larger
+// than any real pasted document (the target announcement file is ~2 KB) while
+// still comfortably covering legitimate use.
 const MAX_MARKDOWN_PASTE_LENGTH = 200_000 // characters
 
 // Auto-converts pasted plain text that looks like markdown into rich content.
@@ -111,6 +114,16 @@ export const MarkdownPaste = Extension.create({
 
                         try {
                             const html = marked.parse(text, { gfm: true, breaks: true, async: false }) as string
+                            // The composer schema has no Table/TableRow/TableCell/TableHeader
+                            // extensions, so ProseMirror cannot represent a <table> — it would
+                            // flatten every row into one run-on paragraph (headers and cells
+                            // concatenated with no separators), silently destroying the content.
+                            // Decline the ENTIRE paste, not just the table, so it falls through
+                            // to the default handler and inserts the original text as literal,
+                            // unconverted text: lossless, even though any headings/lists/bold
+                            // that happened to travel alongside the table in the same paste
+                            // also stay literal rather than being converted.
+                            if (/<table[\s>]/i.test(html)) return false
                             editor.commands.insertContent(html)
                             return true
                         } catch {
