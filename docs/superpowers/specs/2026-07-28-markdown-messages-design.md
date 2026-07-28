@@ -48,7 +48,10 @@ A Tiptap `Extension` contributing a ProseMirror plugin with a `handlePaste` prop
 Runs only when ALL hold:
 
 - Clipboard has `text/plain` and **no** `text/html` flavor (rich pastes from
-  browsers/Office keep Tiptap's default handling) and no files.
+  browsers/Office keep Tiptap's default handling) and no files. Exception:
+  when the clipboard carries `vscode-editor-data` (VS Code adds a styled
+  `text/html` flavor to every copy), the plain-text flavor is treated as the
+  real content and detection runs anyway.
 - The selection is not inside a code block (paste stays literal there).
 - The detection heuristic matches.
 
