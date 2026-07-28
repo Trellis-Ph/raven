@@ -31,10 +31,18 @@ branch + PR, never straight into `main`.
 - Keep the branch list minimal; stale branches are deleted on sight.
 - Before starting work, prune: `git fetch --prune`.
 
-## Environment sync — rollout = pin bump + image rebuild + pull
-Prod and sandbox MUST always run raven at the `main` tip. Environments do NOT
-compile raven locally and never run off a feature branch — the fork is baked into
-the Trellis Docker image, and the VPS only PULLS that image.
+## Environment sync — the two environments deploy DIFFERENTLY
+Prod and sandbox MUST always run raven at the `main` tip, and never off a
+feature branch — but they get there by different mechanisms:
+
+- **Sandbox** (`sandbox.trellis.ph`, dockerized): raven is baked into the
+  Trellis image; the box only PULLS the image (pin bump → image rebuild →
+  pull, below). It never compiles raven.
+- **Prod** (`trellis.ph`, BAREMETAL bench — a different VPS): raven is deployed
+  **manually** on the box (update `apps/raven` to the merged `main` commit,
+  `bench build --app raven`, migrate/restart). The nxtech merge-to-main
+  auto-deploy does NOT cover this repo — a raven merge reaches prod only when
+  someone deploys it there.
 
 Bundling is owned by the `Trellis-Ph/nXtech` repo (the "nxtech migration"), not
 this repo:
@@ -55,19 +63,20 @@ this repo:
 
 To roll a raven change out to environments:
 1. Merge it into `main` here (branch + PR, as above).
-2. In `Trellis-Ph/nXtech`, bump `COMMIT[raven]` in
+2. **Sandbox:** in `Trellis-Ph/nXtech`, bump `COMMIT[raven]` in
    `deploy/trellis-image/build-apps.sh` to the new `main` tip (branch + PR
-   there too), then run the **Build Trellis image** workflow to push a fresh
-   image to GHCR. Note the bump ships *everything* between the old pin and the
-   new tip, not just your merge — check what else landed on `main` first.
-3. On prod/sandbox, pull the new image — the VPS never compiles
-   (see nXtech `docs/notes/docker-sandbox.md`). Sandbox first; watch the
-   migrate.
+   there too), run the **Build Trellis image** workflow to push a fresh image
+   to GHCR, then pull + `up -d` on the sandbox box and watch the migrate (see
+   nXtech `docs/notes/docker-sandbox.md`). Note the bump ships *everything*
+   between the old pin and the new tip, not just your merge — check what else
+   landed on `main` first.
+3. **Prod:** after sandbox verifies, deploy manually on the prod baremetal box:
+   update `apps/raven` to the same commit, `bench build --app raven`,
+   migrate/restart.
 
-An environment is in sync when its image bakes raven at the commit
-`COMMIT[raven]` points to — which should be advanced to the `main` tip as part
-of each rollout. A merged PR whose commit is ahead of the pin is NOT deployed
-yet.
+An environment is in sync when it runs raven at the commit `COMMIT[raven]`
+points to — which should be advanced to the `main` tip as part of each
+rollout. A merged PR whose commit is ahead of the pin is NOT deployed yet.
 
 ## Build artifacts
 - Built bundles (`raven/public/raven/assets/index-*.js`) are gitignored and
