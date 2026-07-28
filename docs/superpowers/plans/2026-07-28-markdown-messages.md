@@ -523,10 +523,15 @@ Copy the markdown source and paste it into the composer. Pastes that look
 like markdown are converted to rich formatting automatically (headings,
 bold, lists, code, tables). Review the result in the composer, then send.
 
-If you did not want the conversion: **Shift+paste** inserts the text
-literally without converting. Ctrl+Z undoes a conversion you already made
-— note that this reverts the paste entirely (it does not leave the literal
-markdown behind), so re-paste with Shift held.
+If you did not want the conversion, hold **Shift while pasting**. That keeps
+block-level structure — headings, lists, quotes, code blocks, tables — as
+plain text. Inline styling is a separate, always-on Tiptap behaviour and
+still applies even with Shift held: `**bold**`, `*italic*`, `~~strike~~`,
+`` `code` ``, `==highlight==`, and bare URLs are auto-formatted regardless.
+
+Ctrl+Z undoes a conversion you already made, but it reverts the paste
+entirely rather than leaving the literal markdown behind — so to get the
+raw text, re-paste with Shift held.
 
 ## Option B — bot script (repeatable / automatable)
 
