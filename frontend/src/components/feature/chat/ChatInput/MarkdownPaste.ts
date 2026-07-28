@@ -1,7 +1,15 @@
 import { Extension } from '@tiptap/react'
 import { Plugin, PluginKey } from 'prosemirror-state'
+import type { EditorView } from 'prosemirror-view'
 import { marked } from 'marked'
 import { looksLikeMarkdown } from './markdownDetection'
+
+// `input` is prosemirror-view internal state — it carries the live modifier-key
+// state (Shift, in particular) but is not part of EditorView's public types.
+// A future prosemirror-view version could rename or drop it; reading it through
+// this local type with optional chaining means that case degrades to "shift
+// not held" (i.e. normal conversion still runs) instead of throwing.
+type ViewWithInput = EditorView & { input?: { shiftKey?: boolean } }
 
 // Auto-converts pasted plain text that looks like markdown into rich content.
 // Declines (falls through to default paste handling) for file pastes,
@@ -48,27 +56,27 @@ export const MarkdownPaste = Extension.create({
                         // doPaste computes this from view.input.shiftKey, but it calls every
                         // handlePaste plugin (including this one) unconditionally before
                         // applying that preference, so we have to check it here too.
-                        if (view.input.shiftKey) return false
+                        if ((view as ViewWithInput).input?.shiftKey) return false
 
                         // VS Code tags every copy with a `vscode-editor-data` clipboard
                         // flavor carrying the source language, e.g. {"mode":"markdown"}.
-                        // Only a markdown-ish mode is ours to convert; any other language
-                        // must fall through to codeBlockVSCodeHandler so it still becomes a
-                        // syntax-highlighted code block. A malformed/unparseable value is
-                        // treated the same as "no VS Code data" — never throws.
-                        let vscodeMode: string | undefined
+                        // Once that flavor is present at all, the decision comes solely
+                        // from its parsed mode — never fall through to the generic
+                        // looksLikeMarkdown() heuristic below. Only a markdown-ish mode is
+                        // ours to convert; any other language, a missing/non-string mode,
+                        // or unparseable JSON must all decline the same way, so the paste
+                        // defers to codeBlockVSCodeHandler and still becomes a
+                        // syntax-highlighted code block instead of being mangled.
                         const vscodeRaw = clipboard.getData('vscode-editor-data')
                         if (vscodeRaw) {
+                            let vscodeMode: string | undefined
                             try {
                                 const parsed = JSON.parse(vscodeRaw)
                                 vscodeMode = typeof parsed?.mode === 'string' ? parsed.mode : undefined
                             } catch {
                                 vscodeMode = undefined
                             }
-                        }
-
-                        if (vscodeMode) {
-                            const isMarkdownVSCode = ['markdown', 'md'].includes(vscodeMode.toLowerCase())
+                            const isMarkdownVSCode = !!vscodeMode && ['markdown', 'md'].includes(vscodeMode.toLowerCase())
                             if (!isMarkdownVSCode) return false
                         } else if (clipboard.types.includes('text/html')) {
                             // Rich-text pastes with no VS Code markdown signal keep Tiptap's
