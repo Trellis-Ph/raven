@@ -549,8 +549,15 @@ frappe.db.commit()
 ​```
 
 A **Raven Incoming Webhook** (Raven settings → Integrations) is the
-no-console equivalent: POST the markdown as `text` and it converts the
-same way.
+no-console equivalent — POST the markdown as `content` and it converts the
+same way:
+
+​```json
+{ "content": "# Heading\n\nSome **bold** text." }
+​```
+
+The field must be `content`. Any other key is ignored and the webhook
+posts an empty message while still returning success.
 
 Verify on sandbox before posting to a production channel.
 ```
