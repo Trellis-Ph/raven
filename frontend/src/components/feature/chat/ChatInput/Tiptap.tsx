@@ -12,6 +12,7 @@ import Mention from '@tiptap/extension-mention'
 import { UserFields, UserListContext } from '@/utils/users/UserListProvider'
 import { getMentionLabel } from '@/utils/users/displayName'
 import MentionList from './MentionList'
+import { MarkdownPaste } from './MarkdownPaste'
 import tippy from 'tippy.js'
 import { PluginKey } from '@tiptap/pm/state'
 import { ChannelListContext, ChannelListContextType } from '@/utils/channel/ChannelListProvider'
@@ -355,6 +356,7 @@ const Tiptap = forwardRef(({ isEdit, slotBefore, fileProps, onMessageSend, onUpA
             },
         }),
         HeadingWithoutInputRules,
+        MarkdownPaste,
         Underline,
         Highlight.configure({
             multicolor: true,
