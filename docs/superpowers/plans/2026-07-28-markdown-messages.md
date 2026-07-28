@@ -200,7 +200,15 @@ In the `extensions` array, add right after the `StarterKit.configure({...})` ent
 
 - [ ] **Step 4: Styling**
 
-Append to `frontend/src/components/feature/chat/ChatInput/tiptap.styles.css`:
+The two files get **different** scales — their body text differs. The composer's
+paragraphs are a fixed `text-sm` (14px at every width). The renderer's are
+`text-base sm:text-sm` (16px mobile, 14px from 640px up). Headings must stay
+visibly larger than body at BOTH breakpoints, so the renderer needs a
+mobile-first scale with a `640px` step-down; a fixed scale would put `h3` at
+exactly body size on mobile.
+
+Append to `frontend/src/components/feature/chat/ChatInput/tiptap.styles.css`
+(composer — body is 14px at all widths, so one fixed scale):
 
 ```css
 .tiptap-editor h1,
@@ -210,7 +218,7 @@ Append to `frontend/src/components/feature/chat/ChatInput/tiptap.styles.css`:
 .tiptap-editor h5,
 .tiptap-editor h6 {
     font-weight: 700;
-    line-height: 1.3;
+    line-height: 1.35;
     margin: 0.75rem 0 0.25rem 0;
 }
 
@@ -242,7 +250,75 @@ Append to `frontend/src/components/feature/chat/ChatInput/tiptap.styles.css`:
 }
 ```
 
-Append to `frontend/src/components/feature/chat/ChatMessage/Renderers/TiptapRenderer/tiptap-renderer.styles.css` the identical block with `.tiptap-renderer` in place of `.tiptap-editor` (all selectors, same sizes and margins).
+Append to
+`frontend/src/components/feature/chat/ChatMessage/Renderers/TiptapRenderer/tiptap-renderer.styles.css`
+(renderer — mobile-first, stepping down at 640px to match `text-base sm:text-sm`):
+
+```css
+.tiptap-renderer h1,
+.tiptap-renderer h2,
+.tiptap-renderer h3,
+.tiptap-renderer h4,
+.tiptap-renderer h5,
+.tiptap-renderer h6 {
+    font-weight: 700;
+    line-height: 1.35;
+    margin: 0.75rem 0 0.25rem 0;
+}
+
+.tiptap-renderer h1 {
+    font-size: 1.375rem;
+}
+
+.tiptap-renderer h2 {
+    font-size: 1.25rem;
+}
+
+.tiptap-renderer h3 {
+    font-size: 1.125rem;
+}
+
+.tiptap-renderer h4,
+.tiptap-renderer h5,
+.tiptap-renderer h6 {
+    font-size: 1rem;
+}
+
+@media screen and (min-width: 640px) {
+    .tiptap-renderer h1 {
+        font-size: 1.25rem;
+    }
+
+    .tiptap-renderer h2 {
+        font-size: 1.125rem;
+    }
+
+    .tiptap-renderer h3 {
+        font-size: 1rem;
+    }
+
+    .tiptap-renderer h4,
+    .tiptap-renderer h5,
+    .tiptap-renderer h6 {
+        font-size: 0.875rem;
+    }
+}
+
+.tiptap-renderer h1:first-child,
+.tiptap-renderer h2:first-child,
+.tiptap-renderer h3:first-child,
+.tiptap-renderer h4:first-child,
+.tiptap-renderer h5:first-child,
+.tiptap-renderer h6:first-child {
+    margin-top: 0;
+}
+```
+
+Rationale (UI/UX rules applied): headings keep a clear size **and** weight
+delta from body at both breakpoints ("Heading Clarity"); h4–h6 sit at body
+size but bold, which is the documented acceptable minimum; heading
+line-height 1.35 stays tight without cramping, while body line-height is
+untouched (the renderer's `leading-relaxed` on list items stays at 1.625).
 
 - [ ] **Step 5: Verify the frontend builds**
 
