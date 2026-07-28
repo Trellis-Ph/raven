@@ -598,18 +598,40 @@ Expected: completes without error; `git -C apps/raven status` shows `raven/www/r
 
 - [ ] **Step 2: Manual verification on sandbox**
 
-On `sandbox.nxscale.com` ONLY (test channel or self-DM), after a hard refresh (and `bench --site sandbox.nxscale.com clear-website-cache` if the old bundle persists):
+This environment has NO running bench site (no bench processes, nothing served),
+so browser verification CANNOT be performed here. Do not attempt it, and do not
+claim it happened.
 
-1. Paste the full text of `/home/frappe/frappe-bench/apps/nxtech/ANNOUNCEMENT-JULY-2026.md` into the composer → renders with headings, bold, lists, emoji intact.
-2. Press Ctrl+Z once → literal markdown text restored.
-3. Send the converted message → renders identically in the channel.
-4. Paste plain prose containing a stray `#` and `*` → stays literal.
-5. Insert a code block (toolbar), paste markdown inside → stays literal.
-6. Copy a formatted paragraph from a web page, paste → unchanged rich-paste behavior.
-7. Type `# ` at the start of a line → no heading; `#` still opens channel-mention suggestions.
-8. From `bench --site sandbox.nxscale.com console`: send the announcement via `bot.send_message(..., markdown=True)` (snippet in Task 4's doc) → message renders with headings.
+What is already verified, and how — cite this in the PR body:
 
-Record the result of each check. If any fail, STOP and fix before proceeding (use superpowers:systematic-debugging).
+- Detection heuristic: 17-case suite plus the real announcement file, via `tsx`.
+- Paste behaviour: jsdom harness driving the real `prosemirror-view` event
+  pipeline with the production extension set — VS Code modes markdown / python /
+  javascript, Shift+paste block-level suppression, single-transaction undo, and
+  the malformed-`vscode-editor-data` decline path.
+- Type safety: `npx tsc --noEmit` clean for the new files (the 6 pre-existing
+  unrelated errors are unchanged, not masked).
+- Bundle: `yarn build` / `bench build` completes with no errors.
+- Doc claims: each re-derived against source (`send_message` kwargs, webhook
+  `content` key, `channel_id` semantics, desk URL slug).
+
+What still REQUIRES a human in a browser before merge. Reproduce this list
+verbatim in the PR body so the reviewer knows exactly what to click:
+
+1. Paste `/home/frappe/frappe-bench/apps/nxtech/ANNOUNCEMENT-JULY-2026.md` into
+   the composer → headings, bold, lists, emoji intact.
+2. Send it → renders identically in the channel, checked at BOTH desktop and
+   mobile widths (the heading scale changes across the 640px breakpoint).
+3. Paste plain prose containing a stray `#` and `*` → stays literal.
+4. Paste markdown inside a code block → stays literal.
+5. Paste a formatted paragraph copied from a web page → unchanged rich-paste
+   behaviour.
+6. Type `# ` at line start → no heading, and `#` still opens channel-mention
+   suggestions.
+7. `bot.send_message(..., markdown=True)` from bench console → renders with
+   headings.
+
+Sandbox (`sandbox.nxscale.com`) only — never `trellis.ph`.
 
 - [ ] **Step 3: Commit the bundle pointer**
 
@@ -637,11 +659,28 @@ gh pr create --repo Trellis-Ph/raven --base main --title "feat(chat): markdown p
 
 Announcements written in markdown (e.g. nxtech ANNOUNCEMENT-JULY-2026.md) pasted as literal `##`/`**` text, and even server-converted markdown lost its headings because both Tiptap schemas had `heading: false`. Spec: `docs/superpowers/specs/2026-07-28-markdown-messages-design.md`.
 
-## Notes
+## Behaviour notes
 
 - No backend changes. Messages previously sent with `markdown=True` render their headings retroactively.
-- Detection requires a block-level markdown signal or 2+ inline signals; false positives undo in one Ctrl+Z.
-- Verified manually on sandbox (paste, undo, send, stray-`#` prose, code-block paste, rich paste, bot send).
+- Detection requires a block-level markdown signal or 2+ inline signals.
+- **Shift+paste** suppresses block-level conversion only. Inline styling (`**bold**`, `*italic*`, `~~strike~~`, `` `code` ``, `==highlight==`, bare URLs) is always-on Tiptap paste-rule behaviour and applies regardless of the Shift key.
+- Ctrl+Z reverts a conversion to the pre-paste state; it does not leave the literal markdown behind.
+- VS Code pastes are gated on the reported language: a `markdown` buffer converts, while `python`/`javascript`/etc. still become syntax-highlighted code blocks as before.
+- Headings use different scales per surface: the composer body is a fixed 14px, the renderer body is 16px on mobile and 14px from 640px up, so the renderer's heading scale steps down at that breakpoint.
+
+## Verification status
+
+Verified automatically (see commits): 17-case detection suite plus the real announcement file; a jsdom harness driving the real `prosemirror-view` paste pipeline with the production extension set (VS Code markdown/python/javascript modes, Shift+paste, single-transaction undo, malformed-payload decline); `npx tsc --noEmit` clean for the new files with the 6 pre-existing unrelated errors unchanged; `bench build` clean. Every factual claim in the new doc was re-derived against source.
+
+**Not verified — needs a human in a browser on `sandbox.nxscale.com` (never `trellis.ph`) before merge:**
+
+1. Paste `ANNOUNCEMENT-JULY-2026.md` into the composer → headings, bold, lists, emoji intact.
+2. Send it → renders identically in-channel, at both desktop and mobile widths (heading scale changes at 640px).
+3. Paste plain prose containing a stray `#` and `*` → stays literal.
+4. Paste markdown inside a code block → stays literal.
+5. Paste a formatted paragraph copied from a web page → unchanged rich-paste behaviour.
+6. Type `# ` at line start → no heading; `#` still opens channel-mention suggestions.
+7. `bot.send_message(..., markdown=True)` from bench console → renders with headings.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
