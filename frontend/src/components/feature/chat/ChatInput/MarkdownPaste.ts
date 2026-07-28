@@ -5,11 +5,21 @@ import { marked } from 'marked'
 import { looksLikeMarkdown } from './markdownDetection'
 
 // `input` is prosemirror-view internal state — it carries the live modifier-key
-// state (Shift, in particular) but is not part of EditorView's public types.
-// A future prosemirror-view version could rename or drop it; reading it through
-// this local type with optional chaining means that case degrades to "shift
-// not held" (i.e. normal conversion still runs) instead of throwing.
-type ViewWithInput = EditorView & { input?: { shiftKey?: boolean } }
+// state (Shift and the last key code, in particular) but is not part of
+// EditorView's public types. A future prosemirror-view version could rename or
+// drop it; reading it through this local type with optional chaining means
+// that case degrades to "shift not held" (i.e. normal conversion still runs)
+// instead of throwing.
+type ViewWithInput = EditorView & { input?: { shiftKey?: boolean; lastKeyCode?: number } }
+
+// Markdown pastes larger than this are declined outright (paste falls through
+// to the default literal-text insert) rather than run through detection and
+// marked.parse. This bounds worst-case main-thread time: parsing and then
+// editor.commands.insertContent-ing the resulting HTML (which can run ~2x the
+// input size) is the dominant cost on large pastes. 200 KB is far larger than
+// any real pasted document (the target announcement file is ~2 KB) while still
+// comfortably covering legitimate use.
+const MAX_MARKDOWN_PASTE_LENGTH = 200_000 // characters
 
 // Auto-converts pasted plain text that looks like markdown into rich content.
 // Declines (falls through to default paste handling) for file pastes,
@@ -33,8 +43,12 @@ type ViewWithInput = EditorView & { input?: { shiftKey?: boolean } }
 // "restore" the literal markdown text as new content — it just undoes the
 // paste). Shift+paste is the real literal-text escape hatch: it makes this
 // extension decline entirely, so block-level markdown (headings, lists,
-// blockquotes, tables, fenced code) lands as plain text instead of being
-// converted. Note this extension doesn't control inline mark auto-formatting
+// blockquotes, fenced code) lands as plain text instead of being converted.
+// (Ordinary Shift+click/Shift+Ctrl+V paste, that is — Shift+Insert is
+// excluded below since it's the standard paste shortcut, not this escape
+// hatch. Markdown tables are never converted regardless of Shift: the
+// composer has no table schema support, so a pasted table always stays
+// literal.) Note this extension doesn't control inline mark auto-formatting
 // from other extensions — e.g. StarterKit's Bold/Code paste rules convert
 // **text**/`text` on any paste, Shift or not, independently of this file.
 export const MarkdownPaste = Extension.create({
@@ -55,8 +69,13 @@ export const MarkdownPaste = Extension.create({
                         // Shift+paste is the literal-text escape hatch. ProseMirror's own
                         // doPaste computes this from view.input.shiftKey, but it calls every
                         // handlePaste plugin (including this one) unconditionally before
-                        // applying that preference, so we have to check it here too.
-                        if ((view as ViewWithInput).input?.shiftKey) return false
+                        // applying that preference, so we have to check it here too. Mirror
+                        // ProseMirror's exact condition (view.input.shiftKey &&
+                        // view.input.lastKeyCode != 45): key code 45 is Insert, and
+                        // Shift+Insert is the standard Linux/Windows *paste* shortcut, not a
+                        // paste-as-plain-text request, so it must not trip this escape hatch.
+                        const input = (view as ViewWithInput).input
+                        if (input?.shiftKey && input.lastKeyCode !== 45) return false
 
                         // VS Code tags every copy with a `vscode-editor-data` clipboard
                         // flavor carrying the source language, e.g. {"mode":"markdown"}.
@@ -87,7 +106,8 @@ export const MarkdownPaste = Extension.create({
                         if (editor.isActive('codeBlock')) return false
 
                         const text = clipboard.getData('text/plain')
-                        if (!text || !looksLikeMarkdown(text)) return false
+                        if (!text || text.length > MAX_MARKDOWN_PASTE_LENGTH) return false
+                        if (!looksLikeMarkdown(text)) return false
 
                         try {
                             const html = marked.parse(text, { gfm: true, breaks: true, async: false }) as string
