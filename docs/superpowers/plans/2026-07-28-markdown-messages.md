@@ -521,8 +521,12 @@ Two ways to post a well-formatted `.md` announcement to a Raven channel.
 
 Copy the markdown source and paste it into the composer. Pastes that look
 like markdown are converted to rich formatting automatically (headings,
-bold, lists, code, tables). Ctrl+Z once restores the literal text if the
-conversion wasn't wanted. Review the preview in the composer, then send.
+bold, lists, code, tables). Review the result in the composer, then send.
+
+If you did not want the conversion: **Shift+paste** inserts the text
+literally without converting. Ctrl+Z undoes a conversion you already made
+— note that this reverts the paste entirely (it does not leave the literal
+markdown behind), so re-paste with Shift held.
 
 ## Option B — bot script (repeatable / automatable)
 
