@@ -5,6 +5,7 @@ import { BoxProps } from '@radix-ui/themes/dist/cjs/components/box'
 import { Box } from '@radix-ui/themes'
 import Highlight from '@tiptap/extension-highlight'
 import StarterKit from '@tiptap/starter-kit'
+import Heading from '@tiptap/extension-heading'
 import css from 'highlight.js/lib/languages/css'
 import js from 'highlight.js/lib/languages/javascript'
 import ts from 'highlight.js/lib/languages/typescript'
@@ -89,6 +90,9 @@ export const TiptapRenderer = ({ message, user, isScrolling = false, showMiniIma
             class: 'pt-0.5 px-1 pb-px bg-[var(--gray-a3)] dark:bg-[#0d0d0d] text-[var(--ruby-a11)] dark-[var(--accent-a3)] text text-xs font-mono rounded border border-gray-4 dark:border-gray-6'
           }
         }
+      }),
+      Heading.configure({
+        levels: [1, 2, 3, 4, 5, 6]
       }),
       Highlight.configure({
         multicolor: true,

@@ -13,3 +13,61 @@
     overflow-x: auto;
     padding-right: 4rem;
 }
+
+.tiptap-renderer h1,
+.tiptap-renderer h2,
+.tiptap-renderer h3,
+.tiptap-renderer h4,
+.tiptap-renderer h5,
+.tiptap-renderer h6 {
+    font-weight: 700;
+    line-height: 1.35;
+    margin: 0.75rem 0 0.25rem 0;
+}
+
+.tiptap-renderer h1 {
+    font-size: 1.375rem;
+}
+
+.tiptap-renderer h2 {
+    font-size: 1.25rem;
+}
+
+.tiptap-renderer h3 {
+    font-size: 1.125rem;
+}
+
+.tiptap-renderer h4,
+.tiptap-renderer h5,
+.tiptap-renderer h6 {
+    font-size: 1rem;
+}
+
+@media screen and (min-width: 640px) {
+    .tiptap-renderer h1 {
+        font-size: 1.25rem;
+    }
+
+    .tiptap-renderer h2 {
+        font-size: 1.125rem;
+    }
+
+    .tiptap-renderer h3 {
+        font-size: 1rem;
+    }
+
+    .tiptap-renderer h4,
+    .tiptap-renderer h5,
+    .tiptap-renderer h6 {
+        font-size: 0.875rem;
+    }
+}
+
+.tiptap-renderer h1:first-child,
+.tiptap-renderer h2:first-child,
+.tiptap-renderer h3:first-child,
+.tiptap-renderer h4:first-child,
+.tiptap-renderer h5:first-child,
+.tiptap-renderer h6:first-child {
+    margin-top: 0;
+}

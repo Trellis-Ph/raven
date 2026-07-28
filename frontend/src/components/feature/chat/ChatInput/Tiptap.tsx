@@ -1,5 +1,6 @@
 import { BubbleMenu, Editor, EditorContent, EditorContext, Extension, ReactRenderer, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import Heading from '@tiptap/extension-heading'
 import Underline from '@tiptap/extension-underline'
 import React, { Suspense, forwardRef, lazy, useContext, useEffect, useImperativeHandle, useMemo, useRef } from 'react'
 import { TextFormattingMenu } from './TextFormattingMenu'
@@ -11,6 +12,7 @@ import Mention from '@tiptap/extension-mention'
 import { UserFields, UserListContext } from '@/utils/users/UserListProvider'
 import { getMentionLabel } from '@/utils/users/displayName'
 import MentionList from './MentionList'
+import { MarkdownPaste } from './MarkdownPaste'
 import tippy from 'tippy.js'
 import { PluginKey } from '@tiptap/pm/state'
 import { ChannelListContext, ChannelListContextType } from '@/utils/channel/ChannelListProvider'
@@ -105,6 +107,16 @@ export const ChannelMention = Mention.extend({
             }
         }
     })
+
+// Headings can be pasted (e.g. converted markdown) but not typed — the "# " input
+// rule would fight the channel-mention trigger on #.
+const HeadingWithoutInputRules = Heading.extend({
+    addInputRules() {
+        return []
+    }
+}).configure({
+    levels: [1, 2, 3, 4, 5, 6]
+})
 
 export interface MemberSuggestions extends UserFields {
     is_member: boolean
@@ -343,6 +355,8 @@ const Tiptap = forwardRef(({ isEdit, slotBefore, fileProps, onMessageSend, onUpA
                 }
             },
         }),
+        HeadingWithoutInputRules,
+        MarkdownPaste,
         Underline,
         Highlight.configure({
             multicolor: true,

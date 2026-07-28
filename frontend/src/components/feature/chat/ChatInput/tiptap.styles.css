@@ -130,3 +130,41 @@
 .tiptap pre .hljs-strong {
     font-weight: 700;
 }
+
+.tiptap-editor h1,
+.tiptap-editor h2,
+.tiptap-editor h3,
+.tiptap-editor h4,
+.tiptap-editor h5,
+.tiptap-editor h6 {
+    font-weight: 700;
+    line-height: 1.35;
+    margin: 0.75rem 0 0.25rem 0;
+}
+
+.tiptap-editor h1 {
+    font-size: 1.25rem;
+}
+
+.tiptap-editor h2 {
+    font-size: 1.125rem;
+}
+
+.tiptap-editor h3 {
+    font-size: 1rem;
+}
+
+.tiptap-editor h4,
+.tiptap-editor h5,
+.tiptap-editor h6 {
+    font-size: 0.875rem;
+}
+
+.tiptap-editor h1:first-child,
+.tiptap-editor h2:first-child,
+.tiptap-editor h3:first-child,
+.tiptap-editor h4:first-child,
+.tiptap-editor h5:first-child,
+.tiptap-editor h6:first-child {
+    margin-top: 0;
+}
