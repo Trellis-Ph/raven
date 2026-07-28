@@ -412,7 +412,9 @@ import { looksLikeMarkdown } from './markdownDetection'
 // Auto-converts pasted plain text that looks like markdown into rich content.
 // Declines (falls through to default paste handling) for file pastes, rich-text
 // pastes, pastes inside a code block, and text that doesn't look like markdown.
-// Conversion is a single transaction, so one undo restores the literal text.
+// Conversion is a single transaction, so one undo cleanly reverts the paste to
+// its pre-paste state (it does not leave the literal markdown text behind —
+// paste with Shift held instead to insert block-level markdown literally).
 export const MarkdownPaste = Extension.create({
     name: 'markdownPaste',
 
@@ -493,7 +495,9 @@ git commit -m "feat(chat): auto-convert markdown pastes to rich content
 Plain-text pastes that look like markdown (block signals, or 2+ inline
 signals) are parsed with marked and inserted through the schema. Rich
 pastes, file pastes, and code-block pastes are untouched; one undo
-restores the literal text. VS Code copies are treated as plain text.
+cleanly reverts a conversion to its pre-paste state (Shift+paste is the
+way to insert block-level markdown literally). VS Code copies are treated
+as plain text.
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```

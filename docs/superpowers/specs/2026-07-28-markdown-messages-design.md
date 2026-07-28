@@ -66,8 +66,11 @@ if it contains at least one block-level signal, or two or more inline signals:
 
 **Conversion:** `marked.parse(text, { gfm: true, breaks: true })` → HTML →
 `editor.commands.insertContent(html)` in a single transaction, so one undo
-restores the literal pasted text. On any parse error, return `false` and let the
-default paste proceed.
+cleanly reverts the paste to its pre-paste state (it does not leave the
+literal markdown text behind). To insert markdown literally instead, paste
+with Shift held — that suppresses block-level conversion only; inline
+auto-formatting (`**bold**`, `` `code` ``, etc.) still applies. On any parse
+error, return `false` and let the default paste proceed.
 
 **Security:** inserted HTML is parsed through the Tiptap/ProseMirror schema,
 which drops all nodes/marks not in the whitelist — script tags and unknown
@@ -107,7 +110,9 @@ markdown server-side).
 ## Error handling
 
 - Markdown parse failure → fall back to default paste (literal text).
-- Detection false positive → single Ctrl+Z restores the literal text.
+- Detection false positive → single Ctrl+Z reverts to the pre-paste state
+  (does not leave the literal markdown text behind); re-paste with Shift held
+  to get the literal text instead.
 - Clipboard with files → existing file-attachment paste handling wins (the
   `MarkdownPaste` plugin declines).
 
@@ -121,7 +126,9 @@ markdown server-side).
   - Paste inside a code block → stays literal.
   - Rich-text paste from a web page → unchanged behavior.
   - `bot.send_message(markdown=True)` → message renders with headings.
-  - Ctrl+Z after an auto-conversion → literal text restored.
+  - Ctrl+Z after an auto-conversion → paste cleanly reverted to the pre-paste
+    state (not the literal markdown text — that requires re-pasting with
+    Shift held instead).
 
 ## Rollout
 
