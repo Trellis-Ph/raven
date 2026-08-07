@@ -54,7 +54,12 @@ export const RightToolbarButtons = ({ fileProps, channelID, isEdit, ...sendProps
             <Separator orientation='vertical' />
             <Flex gap='3' align='center'>
                 <EmojiPickerButton />
-                <GIFPickerButton />
+                {/* GIF picker hidden 2026-08-07: Google DISCONTINUED the Tenor API
+                    (tenor.googleapis.com now answers 403 "Tenor API is discontinued"),
+                    so the picker can never return results — no API key fixes it.
+                    Leaving the button in place gives an empty grid the user will
+                    retry; the honest state is that the feature is unavailable.
+                    Restore this line the moment a replacement provider is wired up. */}
                 {fileProps && <FilePickerButton fileProps={fileProps} />}
             </Flex>
             <Separator orientation='vertical' />

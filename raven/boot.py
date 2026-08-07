@@ -19,10 +19,14 @@ def boot_session(bootinfo):
 	if document_link_override and len(document_link_override) > 0:
 		bootinfo.raven_document_link_override = True
 
+	# Upstream fell back to a hardcoded Google API key here (its own comment asked
+	# "should we remove this?"). Removed 2026-08-07: that key is revoked AND the
+	# whole Tenor API is discontinued — tenor.googleapis.com answers 403 "Tenor API
+	# is discontinued" for any key. The fallback only disguised a missing
+	# configuration as a working one, and shipped a credential in bootinfo to every
+	# client for the privilege. Absent config now reads as absent.
 	if tenor_api_key:
 		bootinfo.tenor_api_key = tenor_api_key
-	else:
-		bootinfo.tenor_api_key = "AIzaSyAWkuhLwbMxOlvn_o5fxBke1grUZ7F3ma4"  # should we remove this?
 
 	bootinfo.chat_style = chat_style if chat_style else "Simple"
 

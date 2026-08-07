@@ -2,7 +2,6 @@ import { DropdownMenu, Flex, IconButton } from '@radix-ui/themes'
 import { BiPlus } from 'react-icons/bi'
 import { RightToolbarButtonsProps } from '../RightToolbarButtons'
 import { MdOutlineBarChart } from 'react-icons/md'
-import { HiOutlineGif } from 'react-icons/hi2'
 import AttachFile from './AttachFile'
 import { useBoolean } from '@/hooks/useBoolean'
 import CreatePollDrawer from './CreatePollDrawer'
@@ -11,7 +10,9 @@ import AddGIFDrawer from './AddGIFDrawer'
 const MobileInputActions = ({ fileProps, channelID }: RightToolbarButtonsProps) => {
 
     const [isPollOpen, { on: onPollOpen }, setIsPollOpen] = useBoolean()
-    const [isGIFPickerOpen, { on: onGIFPickerOpen }, setIsGIFPickerOpen] = useBoolean()
+    // Drawer kept mounted (always closed) so restoring the GIF entry is a one-line
+    // change once a replacement provider exists — see RightToolbarButtons.tsx.
+    const [isGIFPickerOpen, , setIsGIFPickerOpen] = useBoolean()
     return (
         <>
             <DropdownMenu.Root>
@@ -28,12 +29,9 @@ const MobileInputActions = ({ fileProps, channelID }: RightToolbarButtonsProps) 
                         </Flex>
                     </DropdownMenu.Item>
                     {fileProps && <AttachFile fileProps={fileProps} />}
-                    <DropdownMenu.Item onClick={onGIFPickerOpen} className='text-base !h-10'>
-                        <Flex gap='2' className='items-center'>
-                            <HiOutlineGif />
-                            GIF
-                        </Flex>
-                    </DropdownMenu.Item>
+                    {/* GIF entry hidden 2026-08-07 — Google discontinued the Tenor API.
+                        See the note in RightToolbarButtons.tsx (desktop sibling); both
+                        entry points must come back together. */}
                 </DropdownMenu.Content>
             </DropdownMenu.Root>
             {channelID && <CreatePollDrawer isOpen={isPollOpen} setIsOpen={setIsPollOpen} channelID={channelID} />}

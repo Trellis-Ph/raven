@@ -40,9 +40,14 @@ export const GIFFeaturedResults = ({ onSelect }: Props) => {
     let gifs: TenorResultObject = { results: [], next: "" };
     // data is an array of objects. Each object is a array called 'results' & cursor called 'next'
     // We need to merge all the 'results' array into one array, and get the last 'next' cursor
+    // Default both sides of the spread. An error-shaped payload (Tenor answers
+    // 403 "Tenor API is discontinued" since 2026-08) has no `results` array, and
+    // spreading undefined threw "can't access property Symbol.iterator" — a hard
+    // crash where an empty grid was the correct outcome. This is what makes any
+    // future provider outage degrade instead of break.
     return data?.reduce((acc, val) => {
-      gifs.results = [...acc.results, ...val.results];
-      gifs.next = val.next;
+      gifs.results = [...(acc?.results ?? []), ...(val?.results ?? [])];
+      gifs.next = val?.next ?? "";
       return gifs;
     }, gifs);
   }, [data]);
