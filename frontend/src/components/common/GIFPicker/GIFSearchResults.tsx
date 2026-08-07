@@ -39,9 +39,12 @@ export const GIFSearchResults = ({ query, onSelect }: Props) => {
         let gifs: TenorResultObject = { results: [], next: "" };
         // data is an array of objects. Each object is a array called 'results' & cursor called 'next'
         // We need to merge all the 'results' array into one array, and get the last 'next' cursor
+        // Default both sides of the spread — see the sibling note in
+        // GIFFeaturedResults.tsx. An error-shaped payload carries no `results`,
+        // and spreading undefined threw "can't access property Symbol.iterator".
         return data?.reduce((acc, val) => {
-            gifs.results = [...acc.results, ...val.results];
-            gifs.next = val.next;
+            gifs.results = [...(acc?.results ?? []), ...(val?.results ?? [])];
+            gifs.next = val?.next ?? "";
             return gifs;
         }, gifs);
     }, [data]);
