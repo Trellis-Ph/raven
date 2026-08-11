@@ -6,7 +6,7 @@ import { HStack, Stack } from "@/components/layout/Stack"
 import { Box, Select, IconButton, Popover } from "@radix-ui/themes"
 import { HelperText, Label } from "@/components/common/Form"
 import { useAtom } from "jotai"
-import { EnterKeyBehaviourAtom, QuickEmojisAtom } from "@/utils/preferences"
+import { ChannelSortAtom, EnterKeyBehaviourAtom, QuickEmojisAtom } from "@/utils/preferences"
 import { lazy, Suspense } from "react"
 import { Loader } from "@/components/common/Loader"
 
@@ -16,6 +16,7 @@ const Preferences = () => {
 
     const [enterKeyBehaviour, setEnterKeyBehaviour] = useAtom(EnterKeyBehaviourAtom)
     const [quickEmojis, setQuickEmojis] = useAtom(QuickEmojisAtom)
+    const [channelSort, setChannelSort] = useAtom(ChannelSortAtom)
 
     return (
 
@@ -42,6 +43,25 @@ const Preferences = () => {
                             {enterKeyBehaviour === 'send-message'
                                 ? 'Pressing Enter will immediately send your message. Use Shift+Enter to add a new line.'
                                 : 'Pressing Enter will add a new line. Use Ctrl/Cmd+Enter to send your message.'
+                            }
+                        </HelperText>
+                    </Stack>
+
+                    <Stack className="max-w-[480px]">
+                        <Box>
+                            <Label htmlFor='ChannelSort' isRequired>Order channels in the sidebar by:</Label>
+                            <Select.Root value={channelSort} name="ChannelSort" onValueChange={(value) => setChannelSort(value as "recent" | "alphabetical")}>
+                                <Select.Trigger className='w-full' />
+                                <Select.Content>
+                                    <Select.Item value='recent'>Most recent activity</Select.Item>
+                                    <Select.Item value='alphabetical'>Name (A–Z)</Select.Item>
+                                </Select.Content>
+                            </Select.Root>
+                        </Box>
+                        <HelperText>
+                            {channelSort === 'recent'
+                                ? 'Channels move to the top when someone posts, so the list re-orders as people chat.'
+                                : 'Channels stay in a fixed A–Z order whether or not they are active or have any messages. Direct messages are always ordered by recent activity.'
                             }
                         </HelperText>
                     </Stack>

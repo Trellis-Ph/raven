@@ -6,6 +6,8 @@ import { toast } from 'sonner'
 import { getErrorMessage } from '@/components/layout/AlertBanner/ErrorBanner'
 import { RavenChannel } from '@/types/RavenChannelManagement/RavenChannel'
 import { useIsMobile } from '@/hooks/useMediaQuery'
+import { useAtomValue } from 'jotai'
+import { ChannelSortAtom } from '@/utils/preferences'
 
 export type UnreadChannelCountItem = { name: string, user_id?: string, unread_count: number, is_direct_message: 0 | 1 }
 
@@ -101,14 +103,31 @@ const useFetchChannelList = (): ChannelListContextType => {
         }
     })
 
+    /**
+     * Channel ordering is user-selectable (Settings → Preferences). DMs are
+     * deliberately NOT covered: they are conversation-driven rather than a
+     * browsable directory, so recency is the right order for them either way.
+     */
+    const channelSort = useAtomValue(ChannelSortAtom)
+
     const { sortedChannels, sortedDMChannels } = useMemo(() => {
-        let sortedChannels = data?.message.channels ?? []
+        const channels = data?.message.channels ?? []
         let sortedDMChannels = data?.message.dm_channels ?? []
 
-        sortedChannels = sortedChannels.sort((a, b) => {
+        // Copy before sorting — `data.message.channels` is the SWR cache array,
+        // and an in-place sort reorders the cache itself.
+        const sortedChannels = [...channels].sort((a, b) => {
+            if (channelSort === 'alphabetical') {
+                // `numeric` so "Room 2" precedes "Room 10"; `sensitivity: base`
+                // so case and accents don't split otherwise-adjacent names.
+                return (a.channel_name ?? '').localeCompare(b.channel_name ?? '', undefined, {
+                    sensitivity: 'base',
+                    numeric: true
+                })
+            }
             const bTimestamp = b.last_message_timestamp ? new Date(b.last_message_timestamp).getTime() : 0
             const aTimestamp = a.last_message_timestamp ? new Date(a.last_message_timestamp).getTime() : 0
-            return new Date(bTimestamp).getTime() - new Date(aTimestamp).getTime()
+            return bTimestamp - aTimestamp
         })
 
         sortedDMChannels = sortedDMChannels.sort((a, b) => {
@@ -118,7 +137,7 @@ const useFetchChannelList = (): ChannelListContextType => {
         })
 
         return { sortedChannels, sortedDMChannels }
-    }, [data])
+    }, [data, channelSort])
 
     return {
         channels: sortedChannels,
