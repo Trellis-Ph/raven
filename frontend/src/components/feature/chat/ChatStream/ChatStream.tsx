@@ -130,12 +130,19 @@ const ChatStream = forwardRef(({ channelID, replyToMessage, showThreadButton = t
     useEffect(() => {
         if (!scrollRef.current) return
 
+        let previousClientHeight = scrollRef.current.clientHeight
+
         const observer = new ResizeObserver(() => {
             const scrollContainer = scrollRef.current
             if (!scrollContainer) return
 
-            // Check if we're near bottom before adjusting scroll
-            if (scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 100) {
+            // Check if we WERE near bottom, measured with the height from before this resize: when the
+            // mobile keyboard opens the container shrinks by ~300px, and measuring with the new height
+            // reads as "scrolled up" and leaves the newest messages hidden behind the keyboard.
+            const wasNearBottom = scrollContainer.scrollTop + previousClientHeight >= scrollContainer.scrollHeight - 100
+            previousClientHeight = scrollContainer.clientHeight
+
+            if (wasNearBottom) {
                 requestAnimationFrame(() => {
                     scrollContainer.scrollTo({
                         top: scrollContainer.scrollHeight,

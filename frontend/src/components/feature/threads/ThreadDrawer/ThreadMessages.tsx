@@ -162,7 +162,7 @@ export const ThreadMessages = ({ threadMessage }: { threadMessage: Message }) =>
         <Flex direction='column' justify={'between'} gap='0' className="h-full p-4">
             <FileDrop
                 files={files}
-                areaHeight="h-[calc(100vh-72px)]"
+                areaHeight="h-[calc(100dvh-72px)]"
                 height="100%"
                 width={'w-[calc((100vw-var(--sidebar-width)-var(--space-8)-var(--space-5))/2)]'}
                 ref={fileInputRef}

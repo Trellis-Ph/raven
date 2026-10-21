@@ -82,7 +82,7 @@ const ChatSpaceArea = ({ channelID }: { channelID: string }) => {
 
     }, [channelID, baseMessage])
 
-    return <Grid columns={threadID && !isMobile ? "2" : "1"} gap="2" rows="repeat(2, 64px)" width="auto" className="dark:bg-gray-2 bg-white h-screen">
+    return <Grid columns={threadID && !isMobile ? "2" : "1"} gap="2" rows="repeat(2, 64px)" width="auto" className="dark:bg-gray-2 bg-white h-dvh">
         {threadID && isMobile ? null : <Box>
             {isLoading && <FullPageLoader />}
             <ErrorBanner error={error} />
