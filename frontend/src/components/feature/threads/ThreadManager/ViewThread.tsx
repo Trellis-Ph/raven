@@ -25,7 +25,7 @@ const ViewThread = () => {
 
     return (
         <div>
-            <Flex direction='column' gap='0' className='w-full h-screen'>
+            <Flex direction='column' gap='0' className='w-full h-dvh'>
                 <ThreadHeader channelID={data?.channel_id} />
                 {isLoading && <FullPageLoader />}
                 {error && <Box p='4'><ErrorBanner error={error} /></Box>}

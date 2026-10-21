@@ -6,7 +6,7 @@ import WorkspacesSidebar from "./WorkspacesSidebar";
 
 export const Sidebar = () => {
     return (
-        <HStack gap='0' className="h-screen">
+        <HStack gap='0' className="h-dvh">
             <WorkspacesSidebar />
             <Flex justify='between' direction='row' gap='2' width='100%'>
                 <Flex direction='column' gap='2' width='100%'>

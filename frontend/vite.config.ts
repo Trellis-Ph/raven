@@ -21,7 +21,11 @@ export default defineConfig(({ command, mode }) => {
 				scope: `/${env.VITE_BASE_NAME}/`,
 				short_name: "Raven",
 				description: "Simple, work messaging tool.",
-				display: "standalone",
+				// Trellis: "browser", not "standalone" — the page no longer qualifies as installable, so
+				// Chrome stops offering "Install Raven" and a home-screen shortcut opens a normal browser
+				// tab with the browser's login. Chat is meant to be reached through the Trellis app. The
+				// service worker (web push) is unaffected.
+				display: "browser",
 				"icons": [
 					{
 						"src": "/assets/raven/manifest/android-chrome-192x192.png",

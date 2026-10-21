@@ -30,7 +30,7 @@ const ParticipatingThreads = (props: Props) => {
                     <UnreadFilter onlyShowUnread={onlyShowUnread} setOnlyShowUnread={setOnlyShowUnread} />
                 </div>
             </div>
-            <div className="h-[calc(100vh-10rem)] overflow-y-auto">
+            <div className="h-[calc(100dvh-10rem)] overflow-y-auto">
                 <ThreadsList
                     content={debouncedSearch}
                     channel={channel}

@@ -26,7 +26,7 @@ const OtherThreads = (props: Props) => {
                     <ChannelFilter channel={channel} setChannel={setChannel} />
                 </div>
             </div>
-            <div className="h-[calc(100vh-10rem)] overflow-y-auto">
+            <div className="h-[calc(100dvh-10rem)] overflow-y-auto">
                 <ThreadsList
                     content={debouncedSearch}
                     endpoint='raven.api.threads.get_other_threads'

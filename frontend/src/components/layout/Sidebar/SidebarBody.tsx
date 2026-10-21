@@ -34,7 +34,7 @@ export const SidebarBody = () => {
     })
 
     return (
-        <ScrollArea type="hover" scrollbars="vertical" className='h-[calc(100vh-4rem)]'>
+        <ScrollArea type="hover" scrollbars="vertical" className='h-[calc(100dvh-4rem)]'>
             <Flex direction='column' gap='2' className='overflow-x-hidden pb-12 sm:pb-0' px='2'>
                 <Flex direction='column' gap='1' className='pb-0.5'>
                     <ThreadsButton />

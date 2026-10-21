@@ -51,7 +51,7 @@ const CommandMenu = () => {
     } else {
         return <Drawer open={open} onOpenChange={setOpen}>
             <DrawerContent>
-                <div className='min-h-[80vh]'>
+                <div className='min-h-[80dvh]'>
                     <CommandList />
                 </div>
             </DrawerContent>

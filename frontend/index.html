@@ -3,8 +3,11 @@
 
 <head>
   <meta charset="UTF-8" />
+  <!-- interactive-widget: Android Chrome (and the Chrome Custom Tab the Trellis app opens chat in)
+    otherwise lays the keyboard OVER the page, hiding the message box and pushing search results
+    up under the browser toolbar. resizes-content shrinks the page above the keyboard instead. -->
   <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
   <title>{{ app_name }}</title>
   <meta name="description" content="Simple, work messaging tool.">
   <link rel="apple-touch-icon" sizes="180x180" href="{{ apple_touch_icon }}">
@@ -14,14 +17,13 @@
   <meta name="msapplication-TileColor" content="#000000">
   <meta name="theme-color" content="#191919">
   <link rel="mask-icon" href="{{ mask_icon }}" color="#000000">
-  <meta name="apple-itunes-app" content="app-id=6741682327, app-argument={{sitename}}">
-
-  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <!-- Trellis: no "get the Raven app" banner and no standalone home-screen app. Chat is reached
+    through the Trellis app (Team Chat); the separate Raven store app and a standalone home-screen
+    copy were a second way in that users kept getting stuck in (2026-10-21). apple-itunes-app,
+    apple-mobile-web-app-capable, apple-touch-fullscreen and mobile-web-app-capable removed. -->
   <meta name="apple-mobile-web-app-title" content="{{ app_name }} | Raven" />
-  <meta name="apple-touch-fullscreen" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="screen-orientation" content="portrait">
-  <meta name="mobile-web-app-capable" content="yes">
 
 
   <link rel="apple-touch-startup-image"
