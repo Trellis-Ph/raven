@@ -3,6 +3,13 @@ import clsx from "clsx"
 import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
 
+// Trellis: index.html asks for interactive-widget=resizes-content, so on Android the browser
+// shrinks the page above the keyboard itself. vaul's own keyboard repositioning then measures
+// the already-shrunk sheet as its "initial" height and pins it there after the keyboard closes,
+// leaving the bottom of the sheet off-screen. iOS ignores interactive-widget, so vaul keeps
+// lifting the sheet there.
+const isAndroid = typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent)
+
 const Drawer = ({
     shouldScaleBackground = true,
     ...props
@@ -12,6 +19,7 @@ const Drawer = ({
         <DrawerPrimitive.Root
             // shouldScaleBackground={shouldScaleBackground}
             setBackgroundColorOnScale={false}
+            repositionInputs={!isAndroid}
             {...props}
         />
     )
