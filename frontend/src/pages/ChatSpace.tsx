@@ -11,6 +11,7 @@ import { UnreadChannelCountItem, UnreadCountData } from "@/utils/channel/Channel
 import { useIsMobile } from "@/hooks/useMediaQuery"
 import { useSetAtom } from "jotai"
 import { lastChannelAtom } from "@/utils/lastVisitedAtoms"
+import { TeamChatNoticePanel } from "@/components/feature/team-chat/TeamChatNotice"
 
 const ChatSpace = () => {
 
@@ -90,7 +91,7 @@ const ChatSpaceArea = ({ channelID }: { channelID: string }) => {
                 channel.type === "dm" ?
                     <DirectMessageSpace channelData={channel.channelData} />
                     : <ChannelSpace channelData={channel.channelData} />
-                : null}
+                : !isLoading && !error ? <TeamChatNoticePanel /> : null}
         </Box>}
         <Outlet />
     </Grid>

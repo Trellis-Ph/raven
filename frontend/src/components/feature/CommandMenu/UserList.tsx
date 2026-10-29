@@ -32,7 +32,8 @@ const UserList = ({ text }: { text: string }) => {
                     user,
                     channel: dmChannel
                 })
-            } else {
+            } else if (!user.team_chat) {
+                // No new DM with someone on Team Chat when you are too: it would be read-only
                 usersWithoutChannels.push(user)
             }
         }

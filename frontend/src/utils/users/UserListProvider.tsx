@@ -22,6 +22,11 @@ export type UserFields = Pick<RavenUser, 'name' | 'full_name' | 'user_image' | '
      * override for EOR Client Admins. Render-only — grants no Raven role.
      */
     workspace_aliases?: Record<string, string>
+    /**
+     * 1 = this person is on Trellis Team Chat and the VIEWER is too (nxtech `get_list` override,
+     * 2026-10-29): a DM between them is read-only, so Raven offers none. Never set for a client viewer.
+     */
+    team_chat?: 0 | 1
 }
 
 export const UserListProvider = ({ children }: PropsWithChildren) => {
