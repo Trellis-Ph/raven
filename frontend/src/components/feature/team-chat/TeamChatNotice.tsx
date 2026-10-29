@@ -7,7 +7,8 @@ import { __ } from '@/utils/translations'
  * Trellis Team Chat (owner, 2026-10-29). When the viewer's company is on Team Chat, Trellis leaves
  * their read-only places out of Raven's lists and sends `team_chat` with the channel list. Then:
  * - nothing left to use (no client channel, no DM with a client): Raven is blurred behind this notice;
- * - client places left: a one-line note above them in the sidebar (TeamChatNoticeNote);
+ * - client or contractor places left (contractors stay on Raven, D-50): a one-line note above them in
+ *   the sidebar (TeamChatNoticeNote);
  * - an old link to a hidden place: this notice in the chat area (TeamChatNoticePanel).
  */
 const NoticeCard = ({ url }: { url: string }) => (
@@ -54,7 +55,7 @@ export const TeamChatNoticeNote = () => {
     return <Card size='1' className='mx-1 my-1' data-testid='team-chat-notice-note'>
         <Flex direction='column' gap='1'>
             <Text size='2' weight='medium'>{__("Your team now talks in Team Chat.")}</Text>
-            <Text size='1' color='gray'>{__("Raven is only for your client chats.")}</Text>
+            <Text size='1' color='gray'>{__("Raven is only for chats with clients and contractors.")}</Text>
             <a href={teamChat.url} className='text-sm text-accent-11 underline underline-offset-2 py-1'>{__("Open Team Chat")}</a>
         </Flex>
     </Card>
