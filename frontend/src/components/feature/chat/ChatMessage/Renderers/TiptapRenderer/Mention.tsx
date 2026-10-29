@@ -29,7 +29,8 @@ export const UserMentionRenderer = ({ node }: NodeViewRendererProps) => {
     const { workspaceID } = useParams()
 
     const onClick = () => {
-        if (user) {
+        // No DM with someone on Team Chat when you are too: it would be read-only
+        if (user && !user.team_chat) {
             call.post('raven.api.raven_channel.create_direct_message_channel', {
                 user_id: user?.name
             }).then((res) => {

@@ -139,8 +139,9 @@ const ExtraUsersItemList = () => {
     }
 
     const filteredUsers = useMemo(() => {
-        // Show only users who are not in the DM list
-        return enabledUsers.filter((user) => !dm_channels.find((channel) => channel.peer_user_id === user.name)).slice(0, 5)
+        // Show only users who are not in the DM list, and never someone on Team Chat when you are too
+        // (that DM is read-only: nxtech marks them `team_chat`)
+        return enabledUsers.filter((user) => !user.team_chat && !dm_channels.find((channel) => channel.peer_user_id === user.name)).slice(0, 5)
     }, [enabledUsers, dm_channels])
 
     return <>{filteredUsers.map((user) => <ExtraUsersItem

@@ -13,6 +13,7 @@ import { useGetChannelUnreadCounts } from './useGetChannelUnreadCounts'
 import { useParams } from 'react-router-dom'
 import { atomWithStorage } from 'jotai/utils'
 import useUnreadThreadsCount from '@/hooks/useUnreadThreadsCount'
+import { TeamChatNoticeNote } from '@/components/feature/team-chat/TeamChatNotice'
 
 export const showOnlyMyChannelsAtom = atomWithStorage('showOnlyMyChannels', false)
 
@@ -36,6 +37,7 @@ export const SidebarBody = () => {
     return (
         <ScrollArea type="hover" scrollbars="vertical" className='h-[calc(100dvh-4rem)]'>
             <Flex direction='column' gap='2' className='overflow-x-hidden pb-12 sm:pb-0' px='2'>
+                <TeamChatNoticeNote />
                 <Flex direction='column' gap='1' className='pb-0.5'>
                     <ThreadsButton />
                     {/* <SidebarItemForPage

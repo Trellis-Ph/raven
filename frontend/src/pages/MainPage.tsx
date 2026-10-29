@@ -16,6 +16,7 @@ import { useFrappeEventListener, useSWRConfig } from 'frappe-react-sdk'
 import { useUnreadThreadsCountEventListener } from '@/hooks/useUnreadThreadsCount'
 import { UserContext } from '@/utils/auth/UserProvider'
 import AIThreadAutoOpen from '@/components/feature/ai/AIThreadAutoOpen'
+import { TeamChatNoticeOverlay } from '@/components/feature/team-chat/TeamChatNotice'
 
 const AddRavenUsersPage = lazy(() => import('@/pages/AddRavenUsersPage'))
 
@@ -113,6 +114,7 @@ const MainPageContent = () => {
             <CommandMenu />
             <MessageActionController />
             <AIThreadAutoOpen />
+            <TeamChatNoticeOverlay />
         </ChannelListProvider>
     </UserListProvider>
 }

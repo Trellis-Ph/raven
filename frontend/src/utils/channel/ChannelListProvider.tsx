@@ -26,12 +26,23 @@ export interface SidebarChannelListItem extends ChannelListItem {
     is_archived: 0,
 }
 
+/**
+ * Set by Trellis (nxtech's `get_all_channels` override, 2026-10-29) when the viewer's company is on
+ * Team Chat: their read-only places are already left out of the lists, and Raven says where the team
+ * talks now (TeamChatNotice). `url` opens Trellis with Team Chat open.
+ */
+export interface TeamChatNotice {
+    url: string
+}
+
 interface ChannelList {
     channels: ChannelListItem[],
-    dm_channels: DMChannelListItem[]
+    dm_channels: DMChannelListItem[],
+    team_chat?: TeamChatNotice | null
 }
 
 export interface ChannelListContextType extends ChannelList {
+    teamChat: TeamChatNotice | null,
     mutate: KeyedMutator<{ message: ChannelList }>,
     error?: FrappeError,
     isLoading: boolean
@@ -142,6 +153,7 @@ const useFetchChannelList = (): ChannelListContextType => {
     return {
         channels: sortedChannels,
         dm_channels: sortedDMChannels,
+        teamChat: data?.message.team_chat ?? null,
         mutate,
         ...rest
     }

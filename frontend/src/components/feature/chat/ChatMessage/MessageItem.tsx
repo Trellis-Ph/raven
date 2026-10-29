@@ -393,6 +393,9 @@ const StartDMButton = ({ userID }: { userID: string }) => {
 
     const { call } = useContext(FrappeContext) as FrappeConfig
 
+    // Someone on Team Chat, when you are too: that DM would be read-only (nxtech marks them `team_chat`)
+    const onTeamChat = !!useGetUser(userID)?.team_chat
+
     const navigate = useNavigate()
 
     const { workspaceID } = useParams()
@@ -411,6 +414,8 @@ const StartDMButton = ({ userID }: { userID: string }) => {
         }
 
     }
+
+    if (onTeamChat) return null
 
     return <Button variant='soft' className='not-cal' size='1' onClick={onClick}>
         <BiChat size='14' /> Message
